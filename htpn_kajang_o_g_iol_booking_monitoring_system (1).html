@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTPN Kajang O&amp;G — IOL Booking &amp; Monitoring System</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome 6 via CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    /* Smooth pastel scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #faf5ff;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d8b4fe;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #c084fc;
+    }
+    /* Subtle pulse for favorable Bishop / Awaiting Call LR badge */
+    @keyframes softPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.012); }
+    }
+    .badge-pulse {
+      animation: softPulse 2.2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-pink-50/70 to-fuchsia-50 text-purple-950 min-h-screen flex flex-col">
+
+  <!-- ==================== TOP NAVIGATION BAR (PASTEL PURPLE & PINK) ==================== -->
+  <header class="bg-gradient-to-r from-purple-200 via-pink-200 to-fuchsia-200 text-purple-950 border-b border-purple-300/70 shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+      <!-- Brand / Hospital Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/80 border border-purple-300 flex items-center justify-center shrink-0 shadow-xs">
+          <i class="fa-solid fa-hospital-user text-purple-700 text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-snug text-purple-950">
+            Hospital Tuanku Permaisuri Norasyikin (HTPN) Kajang — O&amp;G IOL Tracker
+          </h1>
+          <p class="text-xs text-purple-900/80 font-medium flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span>IOL Booking &amp; Monitoring System</span>
+            <span class="hidden sm:inline text-purple-400">•</span>
+            <span id="headerClock" class="hidden sm:inline text-purple-900/90 font-semibold"></span>
+            <span class="hidden md:inline text-purple-400">•</span>
+            <span class="text-[11px] text-fuchsia-900 font-semibold bg-white/60 px-2 py-0.5 rounded-full border border-pink-300/70">
+              <i class="fa-solid fa-lock text-[10px] mr-1 text-pink-600"></i>PDPA Confidential — Clinical Use Only
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons + Google Sheets Sync Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Google Sheets Sync Status Pill -->
+        <div class="flex items-center gap-1 bg-white/75 border border-purple-300/80 rounded-xl p-1 shadow-xs">
+          <button id="syncStatusBtn" onclick="openSheetsModal()" class="px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition hover:bg-purple-100/80 text-purple-900" title="Configure Google Sheets Database Sync">
+            <span id="syncDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <i class="fa-solid fa-table text-emerald-600"></i>
+            <span id="syncStatusText">Local Only</span>
+          </button>
+          <button id="btnQuickRefresh" onclick="pullFromGoogleSheets(true)" class="hidden w-7 h-7 rounded-lg bg-purple-100/80 hover:bg-purple-200 text-purple-800 flex items-center justify-center transition" title="Refresh latest data from Google Sheets">
+            <i id="refreshIcon" class="fa-solid fa-arrows-rotate text-xs"></i>
+          </button>
+        </div>
+
+        <button onclick="openBookingModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-calendar-plus"></i>
+          <span>+ Book IOL</span>
+        </button>
+        <button onclick="openAddOngoingModal()" class="bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-bed-pulse"></i>
+          <span>+ Add Ongoing IOL</span>
+        </button>
+        <button onclick="openHandoverModal()" class="bg-white/85 hover:bg-white text-purple-900 border border-purple-300 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+          <i class="fa-brands fa-whatsapp text-emerald-600 text-base"></i>
+          <span>Shift Handover</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTAINER ==================== -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 flex-1">
+
+    <!-- ==================== KPI SUMMARY CARDS ==================== -->
+    <section aria-label="Department KPIs" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <!-- KPI 1: Today's Bookings -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-purple-700/80">Today's Bookings</span>
+          <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-calendar-day text-sm"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span id="kpiTodayCount" class="text-2xl sm:text-3xl font-extrabold text-purple-950">0</span>
+          <span id="kpiTodayCapLabel" class="text-xs sm:text-sm font-semibold text-purple-700/70">/ 10 weekday slots</span>
+        </div>
+        <div class="w-full bg-purple-100 rounded-full h-1.5 mt-2.5 overflow-hidden">
+          <div id="kpiTodayBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- KPI 2: Active Ongoing IOLs -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-purple-700/80">Active Ongoing IOLs</span>
+          <span class="w-8 h-8 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-hospital text-sm"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiOngoingTotal" class="text-2xl sm:text-3xl font-extrabold text-purple-950">0</span>
+          <span class="text-xs text-purple-700/70 font-medium">inpatients</span>
+        </div>
+        <div class="flex items-center gap-2 mt-2 flex-wrap">
+          <span id="kpiWard7A" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 border border-violet-200">Ward 7A: 0</span>
+          <span id="kpiWard7B" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-pink-100 text-pink-800 border border-pink-200">Ward 7B: 0</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Favorable / Awaiting Call Labour Room -->
+      <div id="kpiFavorableCard" onclick="quickFilterFavorable()" class="cursor-pointer bg-gradient-to-br from-fuchsia-100/90 via-pink-100/90 to-purple-100/90 rounded-2xl border-2 border-fuchsia-400 p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-fuchsia-900">Favorable / Awaiting LR</span>
+          <span class="w-8 h-8 rounded-xl bg-fuchsia-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i class="fa-solid fa-bell text-sm"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiFavorableCount" class="text-2xl sm:text-3xl font-extrabold text-fuchsia-950">0</span>
+          <span class="text-xs font-semibold text-fuchsia-800">ready for LR</span>
+        </div>
+        <p class="text-[11px] font-semibold text-pink-800 mt-2 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-pointer text-[10px]"></i>
+          <span>Click to filter Awaiting LR</span>
+        </p>
+      </div>
+
+      <!-- KPI 4: Completed / Delivered Today -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-purple-700/80">Delivered Today</span>
+          <span class="w-8 h-8 rounded-xl bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-baby text-sm"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiDeliveredToday" class="text-2xl sm:text-3xl font-extrabold text-purple-950">0</span>
+          <span class="text-xs text-purple-700/70 font-medium">completed</span>
+        </div>
+        <p id="kpiDeliveredSplit" class="text-xs text-purple-700/75 mt-2 truncate">SVD: 0 • Inst: 0 • EMLSCS: 0</p>
+      </div>
+    </section>
+
+    <!-- ==================== MAIN NAVIGATION TABS ==================== -->
+    <nav class="flex space-x-1.5 bg-purple-200/60 border border-purple-200/80 p-1.5 rounded-2xl mb-6 overflow-x-auto" aria-label="Primary Tabs">
+      <button id="tabBtnOngoing" onclick="switchTab('ongoing')" class="flex-1 min-w-[150px] py-2.5 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-white text-purple-900 shadow-sm">
+        <i class="fa-solid fa-bed-pulse text-pink-600"></i>
+        <span>Ongoing IOLs</span>
+        <span id="badgeOngoing" class="bg-purple-100 text-purple-800 text-xs font-extrabold px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button id="tabBtnCalendar" onclick="switchTab('calendar')" class="flex-1 min-w-[170px] py-2.5 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 text-purple-800/80 hover:text-purple-950">
+        <i class="fa-solid fa-calendar-days text-purple-600"></i>
+        <span>IOL Booking Calendar</span>
+        <span id="badgeBooked" class="bg-purple-200/80 text-purple-800 text-xs font-extrabold px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button id="tabBtnCompleted" onclick="switchTab('completed')" class="flex-1 min-w-[180px] py-2.5 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 text-purple-800/80 hover:text-purple-950">
+        <i class="fa-solid fa-clipboard-check text-fuchsia-600"></i>
+        <span>Completed &amp; Handover</span>
+        <span id="badgeCompleted" class="bg-purple-200/80 text-purple-800 text-xs font-extrabold px-2 py-0.5 rounded-full">0</span>
+      </button>
+    </nav>
+
+    <!-- ==================== TAB 1: ONGOING IOLs ==================== -->
+    <section id="tabOngoing" class="space-y-4">
+      <!-- Filter & Search Toolbar -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-3.5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <!-- Ward & Favorable Filter Pills -->
+        <div class="flex flex-wrap items-center gap-2" id="ongoingFilters">
+          <button onclick="setOngoingFilter('All')" data-filter="All" class="ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-800 text-white transition">
+            All Wards
+          </button>
+          <button onclick="setOngoingFilter('Ward 7A')" data-filter="Ward 7A" class="ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-violet-100 text-violet-800 border border-violet-200 hover:bg-violet-200/70 transition">
+            Ward 7A
+          </button>
+          <button onclick="setOngoingFilter('Ward 7B')" data-filter="Ward 7B" class="ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-pink-100 text-pink-800 border border-pink-200 hover:bg-pink-200/70 transition">
+            Ward 7B
+          </button>
+          <button onclick="setOngoingFilter('Favorable')" data-filter="Favorable" class="ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-fuchsia-50 text-fuchsia-900 border-2 border-fuchsia-400 hover:bg-fuchsia-100 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-star text-pink-500"></i>
+            <span>Awaiting Call Labour Room (Favorable)</span>
+            <span id="pillFavorableCount" class="bg-fuchsia-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative w-full lg:w-72">
+          <i class="fa-solid fa-magnifying-glass text-purple-400 text-xs absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="ongoingSearch" type="text" oninput="renderOngoing()" placeholder="Search Name, IC, or Indication..." class="w-full pl-9 pr-3 py-2 text-sm bg-purple-50/50 border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white transition" />
+        </div>
+      </div>
+
+      <!-- Ongoing Cards Grid -->
+      <div id="ongoingGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="ongoingEmpty" class="hidden bg-white/95 rounded-2xl border border-dashed border-purple-300 p-10 text-center">
+        <i class="fa-solid fa-bed-pulse text-3xl text-purple-300 mb-2"></i>
+        <p class="text-purple-900 font-semibold">No ongoing IOL cases match your filter.</p>
+        <p class="text-xs text-purple-600/80 mt-1">Admit a patient from the Booking Calendar or click "+ Add Ongoing IOL" above.</p>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: IOL BOOKING CALENDAR ==================== -->
+    <section id="tabCalendar" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- LEFT: Monthly Calendar Grid (7 cols on desktop) -->
+        <div class="lg:col-span-7 bg-white/95 rounded-2xl border border-purple-200/80 shadow-sm overflow-hidden">
+          <!-- Calendar Toolbar -->
+          <div class="px-4 py-3.5 bg-purple-50/80 border-b border-purple-200/80 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-xl bg-white border border-purple-200 hover:bg-purple-100 text-purple-800 flex items-center justify-center transition" title="Previous Month">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <h2 id="calendarMonthLabel" class="text-base font-extrabold text-purple-950 min-w-[160px] text-center">Month Year</h2>
+              <button onclick="changeMonth(1)" class="w-8 h-8 rounded-xl bg-white border border-purple-200 hover:bg-purple-100 text-purple-800 flex items-center justify-center transition" title="Next Month">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+            <button onclick="goToToday()" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-pink-100 text-pink-900 border border-pink-200 hover:bg-pink-200/80 transition">
+              Today
+            </button>
+          </div>
+
+          <!-- Legend -->
+          <div class="px-4 py-2 bg-white border-b border-purple-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-medium text-purple-900/80">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Weekday 0–7/10</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>8–9/10</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>10/10 FULL</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-pink-200 border border-pink-400"></span>Weekend (Special Cases Only)</span>
+          </div>
+
+          <!-- Day-of-Week Headers (Mon - Sun) -->
+          <div class="grid grid-cols-7 border-b border-purple-200 bg-purple-50/50 text-center text-[11px] font-bold uppercase tracking-wider">
+            <div class="py-2 text-purple-800">Mon</div>
+            <div class="py-2 text-purple-800">Tue</div>
+            <div class="py-2 text-purple-800">Wed</div>
+            <div class="py-2 text-purple-800">Thu</div>
+            <div class="py-2 text-purple-800">Fri</div>
+            <div class="py-2 text-pink-700 bg-pink-100/70">Sat</div>
+            <div class="py-2 text-pink-700 bg-pink-100/70">Sun</div>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div id="calendarGrid" class="grid grid-cols-7 divide-x divide-y divide-purple-100">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- RIGHT: Selected Date Panel (5 cols on desktop) -->
+        <div class="lg:col-span-5 bg-white/95 rounded-2xl border border-purple-200/80 shadow-sm overflow-hidden flex flex-col">
+          <div id="selectedDateHeader" class="p-4 border-b border-purple-200/80 bg-purple-50/60">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Booked Cases List for Selected Date -->
+          <div id="selectedDateList" class="p-4 space-y-3 max-h-[650px] overflow-y-auto">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: COMPLETED & SHIFT HANDOVER ==================== -->
+    <section id="tabCompleted" class="hidden space-y-5">
+      <!-- Outcome Breakdown Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm">
+          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg">SVD</span>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statSVD" class="text-2xl font-extrabold text-purple-950">0</span>
+            <span id="statSVDPct" class="text-xs font-semibold text-purple-600/80">0%</span>
+          </div>
+        </div>
+        <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm">
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-lg">Instrumental</span>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statInst" class="text-2xl font-extrabold text-purple-950">0</span>
+            <span id="statInstPct" class="text-xs font-semibold text-purple-600/80">0%</span>
+          </div>
+        </div>
+        <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm">
+          <span class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">EMLSCS</span>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statEMLSCS" class="text-2xl font-extrabold text-purple-950">0</span>
+            <span id="statEMLSCSPct" class="text-xs font-semibold text-purple-600/80">0%</span>
+          </div>
+        </div>
+        <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 shadow-sm">
+          <span class="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-lg">Failed IOL</span>
+          <div class="mt-2 flex items-baseline gap-2">
+            <span id="statFailed" class="text-2xl font-extrabold text-purple-950">0</span>
+            <span id="statFailedPct" class="text-xs font-semibold text-purple-600/80">0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WhatsApp Shift Handover Generator -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-extrabold text-purple-950 flex items-center gap-2">
+              <i class="fa-brands fa-whatsapp text-emerald-600 text-lg"></i>
+              <span>WhatsApp Shift Handover Generator</span>
+            </h2>
+            <p class="text-xs text-purple-700/80 mt-0.5">Auto-formatted for HTPN Kajang O&amp;G: Awaiting Call LR, Ward 7A, Ward 7B &amp; Tomorrow's Booked IOLs.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="copyShiftHandover()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copy to Clipboard</span>
+            </button>
+            <button onclick="exportCSV()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <pre id="handoverPreviewTab" class="p-3.5 bg-purple-50/50 border border-purple-200/80 rounded-xl text-xs text-purple-950 whitespace-pre-wrap font-mono max-h-72 overflow-y-auto"></pre>
+      </div>
+
+      <!-- Completed Cases Table -->
+      <div class="bg-white/95 rounded-2xl border border-purple-200/80 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-purple-200/80 bg-purple-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-extrabold text-purple-950">Completed / Delivered Cases</h3>
+            <span id="completedTotalLabel" class="text-xs font-semibold text-purple-700/80">0 records</span>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass text-purple-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="completedSearch" type="text" oninput="renderCompleted()" placeholder="Search Name, IC, Outcome..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition" />
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-purple-200/80 text-[11px] font-bold text-purple-800 uppercase bg-purple-50/40">
+                <th class="py-3 px-4">Patient &amp; IC</th>
+                <th class="py-3 px-4">BMI</th>
+                <th class="py-3 px-4">Ward</th>
+                <th class="py-3 px-4">Indication</th>
+                <th class="py-3 px-4">Method</th>
+                <th class="py-3 px-4">Outcome</th>
+                <th class="py-3 px-4">Completed At</th>
+                <th class="py-3 px-4">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="completedTableBody" class="divide-y divide-purple-100 text-sm">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div id="completedEmpty" class="hidden p-8 text-center text-sm text-purple-600/80">
+          No completed IOL cases recorded yet.
+        </div>
+      </div>
+
+      <!-- Compact Data & Settings Utility Bar -->
+      <div class="bg-purple-100/70 rounded-2xl border border-purple-200/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="text-xs text-purple-900/80">
+          <strong class="text-purple-950">Storage &amp; Cloud Sync:</strong> Data is cached locally for offline resilience and syncs live to Google Sheets when connected.
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openSheetsModal()" class="bg-white hover:bg-purple-50 text-purple-900 border border-purple-300 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-table text-emerald-600"></i>
+            <span>Google Sheets Settings</span>
+          </button>
+          <button onclick="requestLoadDemo()" class="bg-white hover:bg-purple-50 text-purple-900 border border-purple-300 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Load Demo Data</span>
+          </button>
+          <button onclick="requestClearAll()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Clear All Data</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL 1: BOOK / EDIT IOL CASE ==================== -->
+  <div id="modalBooking" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-purple-200 via-pink-200 to-fuchsia-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div>
+          <h3 id="modalBookingTitle" class="text-base font-extrabold">Book IOL Case</h3>
+          <p class="text-xs text-purple-900/80 mt-0.5">Mon–Fri max 10 cases/day • Sat–Sun reserved for special cases only</p>
+        </div>
+        <button onclick="closeModal('modalBooking')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formBooking" onsubmit="saveBooking(event)" class="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <input type="hidden" id="bookId" />
+
+        <!-- Planned Date & Live Rule Check -->
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Planned IOL Date *</label>
+          <input id="bookDate" type="date" required oninput="evaluateBookingDateRule()" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          <div id="bookDateAlert" class="mt-2 text-xs font-semibold px-3 py-2 rounded-xl border hidden"></div>
+        </div>
+
+        <!-- Weekend Special Case Box (Shown only on Sat/Sun) -->
+        <div id="weekendSpecialBox" class="hidden bg-pink-50 border-2 border-pink-300 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-start gap-2 text-pink-950">
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+            <div class="text-xs">
+              <strong class="block font-bold">Weekend IOL — Special Cases Only</strong>
+              <span>Saturday &amp; Sunday slots are strictly reserved for urgent/special indications with Specialist approval.</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-pink-950 mb-1">Special Case Justification / Reason *</label>
+            <input id="bookSpecialReason" type="text" placeholder="e.g. Severe PIH requiring urgent delivery, approved by Specialist" class="w-full px-3 py-2 text-sm bg-white border border-pink-300 rounded-xl focus:ring-2 focus:ring-pink-400 focus:outline-none" />
+          </div>
+          <label class="flex items-center gap-2 text-xs font-semibold text-pink-950 cursor-pointer">
+            <input id="bookSpecialConfirm" type="checkbox" class="w-4 h-4 rounded text-pink-600 focus:ring-pink-400" />
+            <span>I confirm Specialist approval has been obtained for this weekend IOL.</span>
+          </label>
+        </div>
+
+        <!-- Patient Identity -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Patient's Full Name *</label>
+            <input id="bookName" type="text" required placeholder="e.g. Nurul Aisyah binti Razak" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">IC Number *</label>
+            <input id="bookIC" type="text" inputmode="numeric" maxlength="12" pattern="[0-9]{12}" required oninput="handleICInput(this, 'bookAge')" placeholder="e.g. 940512105432 (12 digits)" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none font-mono" />
+            <p class="text-[11px] text-purple-700/75 mt-1">Numbers only, no '-' (auto-fills age from first 6 digits)</p>
+          </div>
+        </div>
+
+        <!-- Demographics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Age (yrs) *</label>
+            <input id="bookAge" type="number" min="14" max="55" required placeholder="31" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">BMI (kg/m²)</label>
+            <input id="bookBMI" type="number" step="0.1" min="10" max="80" placeholder="28.5" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Parity *</label>
+            <input id="bookParity" type="text" required placeholder="G2P1" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Gestational Age *</label>
+            <input id="bookGA" type="text" required placeholder="39+2/52" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Indication -->
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Indication for IOL *</label>
+          <input id="bookIndication" type="text" required list="indicationSuggestions" placeholder="e.g. GDM on Insulin, Post-dates, PIH, Oligohydramnios" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          <datalist id="indicationSuggestions">
+            <option value="Post-dates (40+6/52)"></option>
+            <option value="GDM on Insulin"></option>
+            <option value="GDM on Diet Control"></option>
+            <option value="PIH / Gestational Hypertension"></option>
+            <option value="Pre-eclampsia"></option>
+            <option value="Oligohydramnios"></option>
+            <option value="SGA / IUGR"></option>
+            <option value="PROM"></option>
+            <option value="Reduced Fetal Movement"></option>
+            <option value="Macrosomia"></option>
+          </datalist>
+        </div>
+
+        <!-- Booking Person & Specialist -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Name of Person Booking (MO/HO) *</label>
+            <input id="bookPerson" type="text" required placeholder="e.g. Dr. Amirah (MO)" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Name of Specialist *</label>
+            <input id="bookSpecialist" type="text" required placeholder="e.g. Dr. Hajah Zaleha" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-purple-100">
+          <button type="button" onclick="closeModal('modalBooking')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Cancel</button>
+          <button id="btnSaveBooking" type="submit" class="px-5 py-2 text-sm font-bold bg-purple-700 hover:bg-purple-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl shadow-xs transition">
+            Save Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: ADMIT BOOKED OR ADD ONGOING IOL ==================== -->
+  <div id="modalOngoingForm" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-pink-200 via-purple-200 to-fuchsia-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div>
+          <h3 id="modalOngoingTitle" class="text-base font-extrabold">Add Ongoing IOL</h3>
+          <p id="modalOngoingSub" class="text-xs text-purple-900/80 mt-0.5">Admit directly into Ward 7A or Ward 7B monitoring board</p>
+        </div>
+        <button onclick="closeModal('modalOngoingForm')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formOngoing" onsubmit="saveOngoingForm(event)" class="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <input type="hidden" id="ongMode" value="new" />
+        <input type="hidden" id="ongCaseId" />
+
+        <!-- Ward Selection -->
+        <div class="grid grid-cols-2 gap-3">
+          <label class="cursor-pointer">
+            <input type="radio" name="ongWard" value="Ward 7A" class="peer sr-only" checked />
+            <div class="p-3 rounded-xl border-2 border-purple-200 peer-checked:border-violet-600 peer-checked:bg-violet-50 text-center transition">
+              <span class="font-extrabold text-sm text-violet-800 block">Ward 7A</span>
+              <span class="text-[11px] text-purple-700/70">Antenatal / IOL Ward</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="ongWard" value="Ward 7B" class="peer sr-only" />
+            <div class="p-3 rounded-xl border-2 border-purple-200 peer-checked:border-pink-600 peer-checked:bg-pink-50 text-center transition">
+              <span class="font-extrabold text-sm text-pink-800 block">Ward 7B</span>
+              <span class="text-[11px] text-purple-700/70">Antenatal / IOL Ward</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Patient Identity -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Patient's Full Name *</label>
+            <input id="ongName" type="text" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">IC Number *</label>
+            <input id="ongIC" type="text" inputmode="numeric" maxlength="12" pattern="[0-9]{12}" required oninput="handleICInput(this, 'ongAge')" placeholder="e.g. 940512105432 (12 digits)" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none font-mono" />
+            <p class="text-[11px] text-purple-700/75 mt-1">Numbers only, no '-' (auto-fills age)</p>
+          </div>
+        </div>
+
+        <!-- Demographics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Age (yrs) *</label>
+            <input id="ongAge" type="number" min="14" max="55" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">BMI (kg/m²)</label>
+            <input id="ongBMI" type="number" step="0.1" min="10" max="80" placeholder="28.5" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Parity *</label>
+            <input id="ongParity" type="text" required placeholder="G2P1" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Gestational Age *</label>
+            <input id="ongGA" type="text" required placeholder="39+2/52" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Indication for IOL *</label>
+          <input id="ongIndication" type="text" required list="indicationSuggestions" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+        </div>
+
+        <div id="ongInitialClinicalSection" class="space-y-3 pt-2 border-t border-purple-100">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1">Method of IOL Used *</label>
+              <input id="ongMethod" type="text" required list="methodSuggestions" placeholder="e.g. Prostin E2 3mg #1" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+              <datalist id="methodSuggestions">
+                <option value="Prostin E2 3mg #1"></option>
+                <option value="Prostin E2 3mg #2"></option>
+                <option value="Prostin E2 1.5mg #1"></option>
+                <option value="Prostin E2 1.5mg #2"></option>
+                <option value="Foley Catheter (Balloon)"></option>
+                <option value="ARM + Pitocin"></option>
+                <option value="Pitocin Infusion"></option>
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1">Time Started *</label>
+              <input id="ongStartTime" type="datetime-local" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1">Initial Bishop Score (0–13)</label>
+              <input id="ongBishop" type="number" min="0" max="13" value="3" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-purple-900 mb-1">Initial VE Finding *</label>
+              <input id="ongVE" type="text" required placeholder="e.g. Os 1cm, 30% effaced, St -2, firm, posterior, MI" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-purple-100">
+          <button type="button" onclick="closeModal('modalOngoingForm')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Cancel</button>
+          <button type="submit" id="btnSaveOngoing" class="px-5 py-2 text-sm font-bold bg-pink-600 hover:bg-pink-700 text-white rounded-xl shadow-xs transition">
+            Save &amp; Start Monitoring
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: UPDATE VE / METHOD & BISHOP CALCULATOR ==================== -->
+  <div id="modalUpdateVE" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-purple-200 via-pink-200 to-fuchsia-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold">Update VE Finding, Bishop Score &amp; Method</h3>
+          <div id="veModalSubtitle" class="text-xs text-purple-900/90 mt-1 flex flex-wrap items-center gap-1.5"></div>
+        </div>
+        <button onclick="closeModal('modalUpdateVE')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formUpdateVE" onsubmit="saveUpdateVE(event)" class="p-5 space-y-4 max-h-[84vh] overflow-y-auto">
+        <input type="hidden" id="veCaseId" />
+
+        <!-- Ward Transfer & IOL Method -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Current Ward</label>
+            <select id="veWard" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none">
+              <option value="Ward 7A">Ward 7A</option>
+              <option value="Ward 7B">Ward 7B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-purple-900 mb-1">Method of IOL Used</label>
+            <input id="veMethod" type="text" required list="methodSuggestions" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Interactive Bishop Score Calculator -->
+        <div class="bg-purple-50/70 border border-purple-200 rounded-2xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-purple-200 pb-2.5">
+            <div>
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-950">Interactive Bishop Score Calculator</h4>
+              <p class="text-[11px] text-purple-700/80">Bishop Score &ge; 6 automatically flags as Favorable / Awaiting Call LR</p>
+            </div>
+            <span id="bsTotalBadge" class="text-sm font-extrabold px-3.5 py-1.5 rounded-xl bg-amber-600 text-white shadow-xs">
+              BS: 0 / 13 (Unfavorable)
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block font-bold text-purple-900 mb-1">Dilation (0–3)</label>
+              <select id="bsDilation" onchange="recalcBishop(true)" class="w-full px-2.5 py-2 border border-purple-200 rounded-xl bg-white">
+                <option value="0" data-txt="Os closed">Closed (0)</option>
+                <option value="1" data-txt="Os 1-2cm">1–2 cm (1)</option>
+                <option value="2" data-txt="Os 3-4cm">3–4 cm (2)</option>
+                <option value="3" data-txt="Os ≥5cm">&ge; 5 cm (3)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-purple-900 mb-1">Effacement (0–3)</label>
+              <select id="bsEffacement" onchange="recalcBishop(true)" class="w-full px-2.5 py-2 border border-purple-200 rounded-xl bg-white">
+                <option value="0" data-txt="0-30% effaced">0–30% (0)</option>
+                <option value="1" data-txt="40-50% effaced">40–50% (1)</option>
+                <option value="2" data-txt="60-70% effaced">60–70% (2)</option>
+                <option value="3" data-txt="≥80% effaced">&ge; 80% (3)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-purple-900 mb-1">Station (0–3)</label>
+              <select id="bsStation" onchange="recalcBishop(true)" class="w-full px-2.5 py-2 border border-purple-200 rounded-xl bg-white">
+                <option value="0" data-txt="St -3">-3 (0)</option>
+                <option value="1" data-txt="St -2">-2 (1)</option>
+                <option value="2" data-txt="St -1/0">-1 / 0 (2)</option>
+                <option value="3" data-txt="St +1/+2">+1 / +2 (3)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-purple-900 mb-1">Consistency (0–2)</label>
+              <select id="bsConsistency" onchange="recalcBishop(true)" class="w-full px-2.5 py-2 border border-purple-200 rounded-xl bg-white">
+                <option value="0" data-txt="firm">Firm (0)</option>
+                <option value="1" data-txt="medium">Medium (1)</option>
+                <option value="2" data-txt="soft">Soft (2)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-purple-900 mb-1">Cervical Position (0–2)</label>
+              <select id="bsPosition" onchange="recalcBishop(true)" class="w-full px-2.5 py-2 border border-purple-200 rounded-xl bg-white">
+                <option value="0" data-txt="posterior">Posterior (0)</option>
+                <option value="1" data-txt="mid-position">Mid-position (1)</option>
+                <option value="2" data-txt="anterior">Anterior (2)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- VE Free-text Notes -->
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Additional VE Notes (Membranes, Liquor, Presenting Part, CTG)</label>
+          <input id="veExtraNotes" type="text" placeholder="e.g. Membranes intact, vertex, CTG reactive" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          <p id="veFormattedPreview" class="text-[11px] text-purple-900 bg-purple-100/70 px-2.5 py-1.5 rounded-lg mt-1.5 font-medium"></p>
+        </div>
+
+        <!-- Awaiting Call Labour Room Toggle -->
+        <div class="p-3.5 rounded-xl border-2 border-fuchsia-300 bg-fuchsia-50/70 flex items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-extrabold text-fuchsia-950 block">Flag as "Awaiting Call Labour Room"</span>
+            <span class="text-[11px] text-fuchsia-800">Auto-enabled when Bishop Score &ge; 6 (you may manually override).</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input id="veAwaitingLR" type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-purple-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-fuchsia-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-fuchsia-600"></div>
+          </label>
+        </div>
+
+        <!-- VE History Log -->
+        <div class="border-t border-purple-100 pt-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-purple-700/80 mb-2">Previous VE History Log</h4>
+          <div id="veHistoryContainer" class="space-y-1.5 max-h-32 overflow-y-auto text-xs">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-purple-100">
+          <button type="button" onclick="closeModal('modalUpdateVE')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-sm font-bold bg-purple-700 hover:bg-purple-800 text-white rounded-xl shadow-xs transition">
+            Save VE &amp; Update
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: COMPLETE / OUTCOME ==================== -->
+  <div id="modalOutcome" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-fuchsia-200 via-pink-200 to-purple-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-extrabold">Complete IOL / Delivery Outcome</h3>
+          <div id="outcomePatientHeader" class="text-xs text-purple-900/90 mt-1 flex flex-wrap items-center gap-1.5"></div>
+        </div>
+        <button onclick="closeModal('modalOutcome')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="formOutcome" onsubmit="saveOutcome(event)" class="p-5 space-y-4">
+        <input type="hidden" id="outcomeCaseId" />
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Delivery / IOL Outcome *</label>
+          <select id="outcomeType" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl bg-white focus:ring-2 focus:ring-purple-400 focus:outline-none">
+            <option value="SVD">SVD (Spontaneous Vaginal Delivery)</option>
+            <option value="Instrumental">Instrumental (Vacuum / Forceps)</option>
+            <option value="EMLSCS">EMLSCS (Emergency LSCS)</option>
+            <option value="Failed IOL">Failed IOL</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Completion / Delivery Time *</label>
+          <input id="outcomeTime" type="datetime-local" required class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Outcome Notes</label>
+          <textarea id="outcomeRemarks" rows="3" placeholder="e.g. Called to LR at 09:30, SVD baby girl 3.2kg, Apgar 9/10, EBL 250ml" class="w-full px-3 py-2 text-sm border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-purple-100">
+          <button type="button" onclick="closeModal('modalOutcome')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Cancel</button>
+          <button type="submit" class="px-5 py-2 text-sm font-bold bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-xl shadow-xs transition">
+            Confirm Outcome
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 5: QUICK SHIFT HANDOVER ==================== -->
+  <div id="modalHandover" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-purple-200 via-pink-200 to-fuchsia-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-brands fa-whatsapp text-emerald-600 text-xl"></i>
+          <div>
+            <h3 class="text-base font-extrabold">HTPN Kajang O&amp;G — Shift Handover</h3>
+            <p class="text-xs text-purple-900/80">Ready to paste into Department WhatsApp Group</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalHandover')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <pre id="handoverModalPreview" class="p-4 bg-purple-50/50 border border-purple-200 rounded-xl text-xs text-purple-950 whitespace-pre-wrap font-mono max-h-[60vh] overflow-y-auto"></pre>
+        <div class="flex justify-end gap-2">
+          <button onclick="closeModal('modalHandover')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Close</button>
+          <button onclick="copyShiftHandover()" class="px-5 py-2 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition flex items-center gap-1.5">
+            <i class="fa-regular fa-copy"></i>
+            <span>Copy Handover Text</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 6: GOOGLE SHEETS DATABASE SETTINGS ==================== -->
+  <div id="modalSheets" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-auto overflow-hidden border border-purple-200">
+      <div class="px-5 py-4 bg-gradient-to-r from-purple-200 via-pink-200 to-fuchsia-200 text-purple-950 border-b border-purple-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/85 border border-purple-300 flex items-center justify-center">
+            <i class="fa-solid fa-table text-emerald-600 text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold">Google Sheets Database Settings</h3>
+            <p class="text-xs text-purple-900/80">Live multi-device sync via Google Apps Script Web App</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalSheets')" class="text-purple-800 hover:text-purple-950 p-1.5 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Web App URL Input -->
+        <div>
+          <label class="block text-xs font-bold text-purple-900 mb-1">Google Apps Script Web App URL</label>
+          <input id="sheetsUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs sm:text-sm font-mono border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none" />
+          <p class="text-[11px] text-purple-700/75 mt-1">Paste the deployed Web App URL ending in <code class="bg-purple-100 px-1 rounded">/exec</code>. Leave blank to use Local Only mode.</p>
+        </div>
+
+        <!-- Auto-Sync Toggle -->
+        <div class="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 flex items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-extrabold text-purple-950 block">Auto-Sync on Every Change</span>
+            <span class="text-[11px] text-purple-700/80">Automatically pushes bookings, VE updates &amp; outcomes to Google Sheets.</span>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input id="sheetsAutoSyncToggle" type="checkbox" checked onchange="saveSheetsSettings()" class="sr-only peer" />
+            <div class="w-11 h-6 bg-purple-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-purple-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-700"></div>
+          </label>
+        </div>
+
+        <!-- Feedback / Status Banner -->
+        <div id="sheetsModalStatus" class="p-3 rounded-xl border border-purple-200 bg-purple-50/40 text-xs text-purple-900 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold">Connection Status:</span>
+            <span id="sheetsModalBadge" class="font-extrabold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">Local Only</span>
+          </div>
+          <p id="sheetsModalMsg" class="text-[11px] text-purple-800/80">Enter your Google Apps Script URL and click "Test &amp; Connect".</p>
+          <p id="sheetsLastSynced" class="text-[11px] text-purple-700/70 font-medium">Last synced: Never</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <button type="button" onclick="testAndConnectSheets()" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-plug"></i>
+            <span>Test &amp; Connect</span>
+          </button>
+          <button type="button" onclick="pullFromGoogleSheets(true)" class="bg-pink-600 hover:bg-pink-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+            <span>Pull from Sheets</span>
+          </button>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-purple-100">
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="resetToDefaultSheetsUrl()" class="text-xs font-bold text-purple-700 hover:text-purple-900 transition">
+              Reset to Default URL
+            </button>
+            <span class="text-purple-200">|</span>
+            <button type="button" onclick="disconnectSheets()" class="text-xs font-bold text-rose-600 hover:text-rose-700 transition">
+              Disconnect (Local Only)
+            </button>
+          </div>
+          <button type="button" onclick="closeModal('modalSheets')" class="px-4 py-2 text-xs sm:text-sm font-semibold text-purple-800 hover:bg-purple-50 rounded-xl transition">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 7: CUSTOM CONFIRMATION ==================== -->
+  <div id="modalConfirm" class="fixed inset-0 z-50 hidden bg-purple-950/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 border border-purple-200">
+      <h3 id="confirmTitle" class="text-base font-extrabold text-purple-950">Confirm Action</h3>
+      <p id="confirmMessage" class="text-sm text-purple-800/80 mt-1.5"></p>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeModal('modalConfirm')" class="px-4 py-2 text-sm font-semibold text-purple-700 hover:bg-purple-50 rounded-xl transition">Cancel</button>
+        <button id="confirmOkBtn" class="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-purple-950 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 border border-purple-700">
+    <i class="fa-solid fa-circle-check text-pink-300"></i>
+    <span id="toastMsg">Saved</span>
+  </div>
+
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    // =========================================================================
+    // PRE-CONFIGURED GOOGLE APPS SCRIPT WEB APP URL (HTPN KAJANG O&G):
+    // All ward PCs and mobile devices will connect to this live Google Sheets
+    // database automatically on startup.
+    // =========================================================================
+    const DEFAULT_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJisrzOd3yHDlE_A4WsbkqbqNqQe8r8wMBEO7NfNITLprPg5OIcKHf4ERxwmjQnBk1nQ/exec';
+
+    // ==================== CONSTANTS & STATE ====================
+    const STORAGE_KEY = 'htpn_kajang_iol_system_v3';
+    const SHEETS_URL_KEY = 'htpn_iol_gas_url';
+    const SHEETS_AUTOSYNC_KEY = 'htpn_kajang_sheets_autosync';
+    const WEEKDAY_LIMIT = 10;
+
+    let cases = [];
+    let activeTab = 'ongoing';
+    let ongoingFilter = 'All'; // All | Ward 7A | Ward 7B | Favorable
+
+    // Google Sheets Sync state
+    let sheetsUrl = '';
+    let autoSyncEnabled = true;
+    let lastSyncedAt = null;
+    let isSyncing = false;
+
+    // Calendar state
+    const todayDateObj = new Date();
+    let calYear = todayDateObj.getFullYear();
+    let calMonth = todayDateObj.getMonth();
+    let selectedDateStr = toLocalDateStr(todayDateObj);
+
+    let pendingConfirmCallback = null;
+
+    // ==================== DATE & FORMAT UTILITIES ====================
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function toLocalDateStr(d) {
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function parseLocalDate(dateStr) {
+      const [y, m, d] = String(dateStr).split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function normalizeDateStr(val) {
+      if (!val) return '';
+      const str = String(val).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      return str.slice(0, 10);
+    }
+
+    function toDateTimeLocalVal(d) {
+      return `${toLocalDateStr(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function offsetDaysStr(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return toLocalDateStr(d);
+    }
+
+    function offsetHoursISO(hours) {
+      return new Date(Date.now() + hours * 3600 * 1000).toISOString();
+    }
+
+    function isWeekendDateStr(dateStr) {
+      if (!dateStr) return false;
+      const day = parseLocalDate(dateStr).getDay(); // 0=Sun, 6=Sat
+      return day === 0 || day === 6;
+    }
+
+    function getUpcomingSaturdayStr() {
+      const d = new Date();
+      const diff = (6 - d.getDay() + 7) % 7 || 7;
+      d.setDate(d.getDate() + diff);
+      return toLocalDateStr(d);
+    }
+
+    function getNextWeekdayStr(offsetFromToday = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetFromToday);
+      while (d.getDay() === 0 || d.getDay() === 6) {
+        d.setDate(d.getDate() + 1);
+      }
+      return toLocalDateStr(d);
+    }
+
+    function formatShortDateTime(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return String(iso);
+      const todayStr = toLocalDateStr(new Date());
+      const dStr = toLocalDateStr(d);
+      const timeStr = d.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
+      if (dStr === todayStr) return `Today, ${timeStr}`;
+      return `${d.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, ${timeStr}`;
+    }
+
+    function formatReadableDate(dateStr) {
+      const d = parseLocalDate(dateStr);
+      return d.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function escapeHTML(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function toBool(val) {
+      if (typeof val === 'boolean') return val;
+      const s = String(val ?? '').trim().toLowerCase();
+      return s === 'true' || s === 'yes' || s === '1';
+    }
+
+    // ==================== BMI PARSING & COLOR CODING (<30 GREEN, 30-40 AMBER, >40 RED) ====================
+    function parseBMI(val) {
+      if (val === '' || val === null || val === undefined) return null;
+      const num = parseFloat(val);
+      return Number.isFinite(num) ? Math.round(num * 10) / 10 : null;
+    }
+
+    function formatBMIText(bmi) {
+      const val = parseBMI(bmi);
+      return val !== null ? `BMI ${val.toFixed(1)} kg/m²` : 'BMI —';
+    }
+
+    function formatBMIBadge(bmi, compact = false) {
+      const val = parseBMI(bmi);
+      if (val === null) {
+        return compact
+          ? `<span class="text-xs text-purple-400 font-medium">—</span>`
+          : `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-500 border border-purple-200">BMI —</span>`;
+      }
+      // Strict BMI color coding: <30 Green, 30–40 Amber, >40 Red
+      const cls = val > 40
+        ? 'bg-rose-100 text-rose-800 border-rose-300'
+        : val >= 30
+          ? 'bg-amber-100 text-amber-800 border-amber-300'
+          : 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      const label = compact ? `${val.toFixed(1)} kg/m²` : `BMI ${val.toFixed(1)} kg/m²`;
+      return `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-bold border whitespace-nowrap ${cls}">${label}</span>`;
+    }
+
+    // ==================== IC SANITIZATION & AUTO-AGE CALCULATION ====================
+    function sanitizeIC(val) {
+      return String(val ?? '').replace(/\D/g, '').slice(0, 12);
+    }
+
+    function calculateAgeFromIC(icDigits) {
+      const clean = sanitizeIC(icDigits);
+      if (clean.length < 6) return null;
+
+      const yy = parseInt(clean.slice(0, 2), 10);
+      const mm = parseInt(clean.slice(2, 4), 10);
+      const dd = parseInt(clean.slice(4, 6), 10);
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+      const today = new Date();
+      const currentYY = today.getFullYear() % 100;
+      const fullYear = yy <= currentYY ? 2000 + yy : 1900 + yy;
+
+      const birthDate = new Date(fullYear, mm - 1, dd);
+      if (
+        birthDate.getFullYear() !== fullYear ||
+        birthDate.getMonth() !== mm - 1 ||
+        birthDate.getDate() !== dd
+      ) {
+        return null;
+      }
+
+      let age = today.getFullYear() - fullYear;
+      const monthDiff = today.getMonth() - (mm - 1);
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dd)) {
+        age--;
+      }
+
+      return age >= 12 && age <= 65 ? age : null;
+    }
+
+    function handleICInput(inputEl, ageInputId) {
+      const clean = sanitizeIC(inputEl.value);
+      if (inputEl.value !== clean) {
+        inputEl.value = clean;
+      }
+      if (clean.length >= 6 && ageInputId) {
+        const computedAge = calculateAgeFromIC(clean);
+        const ageEl = document.getElementById(ageInputId);
+        if (computedAge !== null && ageEl) {
+          ageEl.value = computedAge;
+        }
+      }
+    }
+
+    function updateHeaderClock() {
+      const now = new Date();
+      const el = document.getElementById('headerClock');
+      if (el) {
+        el.textContent = now.toLocaleString('en-MY', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      }
+    }
+
+    // ==================== GOOGLE SHEETS (APPS SCRIPT) SYNC ENGINE ====================
+    function loadSheetsConfig() {
+      const savedUrl = localStorage.getItem(SHEETS_URL_KEY);
+      if (savedUrl === '__LOCAL_ONLY__') {
+        sheetsUrl = '';
+      } else {
+        sheetsUrl = (savedUrl || DEFAULT_APPS_SCRIPT_URL).trim();
+      }
+      const savedAuto = localStorage.getItem(SHEETS_AUTOSYNC_KEY);
+      autoSyncEnabled = savedAuto === null ? true : savedAuto === 'true';
+
+      document.getElementById('sheetsUrlInput').value = sheetsUrl;
+      document.getElementById('sheetsAutoSyncToggle').checked = autoSyncEnabled;
+      updateSyncUI(sheetsUrl ? 'ready' : 'local');
+    }
+
+    function saveSheetsSettings() {
+      sheetsUrl = (document.getElementById('sheetsUrlInput').value || '').trim();
+      autoSyncEnabled = document.getElementById('sheetsAutoSyncToggle').checked;
+      localStorage.setItem(SHEETS_URL_KEY, sheetsUrl || '__LOCAL_ONLY__');
+      localStorage.setItem(SHEETS_AUTOSYNC_KEY, String(autoSyncEnabled));
+      updateSyncUI(sheetsUrl ? 'ready' : 'local');
+    }
+
+    function updateSyncUI(state, customMsg = '') {
+      const dot = document.getElementById('syncDot');
+      const text = document.getElementById('syncStatusText');
+      const refreshBtn = document.getElementById('btnQuickRefresh');
+      const refreshIcon = document.getElementById('refreshIcon');
+      const modalBadge = document.getElementById('sheetsModalBadge');
+      const modalMsg = document.getElementById('sheetsModalMsg');
+      const lastEl = document.getElementById('sheetsLastSynced');
+
+      if (sheetsUrl) {
+        refreshBtn.classList.remove('hidden');
+      } else {
+        refreshBtn.classList.add('hidden');
+      }
+
+      if (state === 'syncing') {
+        isSyncing = true;
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        text.textContent = 'Syncing...';
+        refreshIcon.classList.add('fa-spin');
+        modalBadge.className = 'font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800';
+        modalBadge.textContent = 'Syncing...';
+        if (customMsg) modalMsg.textContent = customMsg;
+      } else if (state === 'synced') {
+        isSyncing = false;
+        lastSyncedAt = new Date();
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        text.textContent = 'Synced ✓';
+        refreshIcon.classList.remove('fa-spin');
+        modalBadge.className = 'font-extrabold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800';
+        modalBadge.textContent = 'Synced ✓';
+        modalMsg.textContent = customMsg || 'Connected to Google Sheets database.';
+        lastEl.textContent = `Last synced: ${lastSyncedAt.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`;
+      } else if (state === 'error') {
+        isSyncing = false;
+        dot.className = 'w-2 h-2 rounded-full bg-rose-600';
+        text.textContent = 'Sync Error';
+        refreshIcon.classList.remove('fa-spin');
+        modalBadge.className = 'font-extrabold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800';
+        modalBadge.textContent = 'Sync Error';
+        modalMsg.textContent = customMsg || 'Could not reach Google Sheets. Changes remain saved locally.';
+      } else if (state === 'ready') {
+        isSyncing = false;
+        dot.className = 'w-2 h-2 rounded-full bg-purple-500';
+        text.textContent = 'Sheets Ready';
+        refreshIcon.classList.remove('fa-spin');
+        modalBadge.className = 'font-extrabold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800';
+        modalBadge.textContent = 'URL Configured';
+        modalMsg.textContent = customMsg || 'Click "Test & Connect" or "Pull from Sheets" to sync.';
+      } else {
+        isSyncing = false;
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        text.textContent = 'Local Only';
+        refreshIcon.classList.remove('fa-spin');
+        modalBadge.className = 'font-extrabold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700';
+        modalBadge.textContent = 'Local Only';
+        modalMsg.textContent = 'Using browser storage only. Paste your Apps Script URL above to enable cloud sync.';
+      }
+    }
+
+    // Serialize local cases array into the exact 3-sheet Apps Script schema
+    function serializeForSheets() {
+      const bookings = cases
+        .filter(c => c.status === 'booked')
+        .map(c => ({
+          id: c.id,
+          date: c.plannedDate || '',
+          isWeekend: Boolean(c.isSpecialWeekend),
+          specialReason: c.specialReason || '',
+          specialistApproved: Boolean(c.isSpecialWeekend),
+          name: c.name || '',
+          ic: sanitizeIC(c.ic),
+          age: c.age ?? '',
+          bmi: c.bmi !== null && c.bmi !== undefined ? c.bmi : '',
+          parity: c.parity || '',
+          ga: c.ga || '',
+          indication: c.indication || '',
+          bookedBy: c.bookedBy || '',
+          specialist: c.specialist || '',
+          createdAt: c.createdAt || new Date().toISOString(),
+        }));
+
+      const ongoing = cases
+        .filter(c => c.status === 'ongoing')
+        .map(c => ({
+          id: c.id,
+          ward: c.ward || 'Ward 7A',
+          name: c.name || '',
+          ic: sanitizeIC(c.ic),
+          age: c.age ?? '',
+          bmi: c.bmi !== null && c.bmi !== undefined ? c.bmi : '',
+          parity: c.parity || '',
+          ga: c.ga || '',
+          indication: c.indication || '',
+          method: c.method || '',
+          startTime: c.startTime || '',
+          bishopScore: c.bishopScore ?? 0,
+          latestVE: c.latestVE || '',
+          awaitingLR: Boolean(c.awaitingLR),
+          veHistoryJson: JSON.stringify(c.veHistory || []),
+          bookedBy: c.bookedBy || '',
+          specialist: c.specialist || '',
+          updatedAt: c.latestVETime || new Date().toISOString(),
+        }));
+
+      const completed = cases
+        .filter(c => c.status === 'completed')
+        .map(c => ({
+          id: c.id,
+          ward: c.ward || 'Ward 7A',
+          name: c.name || '',
+          ic: sanitizeIC(c.ic),
+          age: c.age ?? '',
+          bmi: c.bmi !== null && c.bmi !== undefined ? c.bmi : '',
+          parity: c.parity || '',
+          ga: c.ga || '',
+          indication: c.indication || '',
+          method: c.method || '',
+          outcome: c.outcome || '',
+          completedAt: c.completedAt || '',
+          notes: c.outcomeRemarks || '',
+        }));
+
+      return { bookings, ongoing, completed };
+    }
+
+    // Deserialize Apps Script GET response back into unified local cases array
+    function deserializeFromSheets(data) {
+      const normalized = [];
+
+      (data.bookings || []).forEach(r => {
+        if (!r.id && !r.name) return;
+        const dateStr = normalizeDateStr(r.date);
+        normalized.push({
+          id: String(r.id || ('bk-' + Date.now() + Math.random())),
+          status: 'booked',
+          plannedDate: dateStr,
+          isSpecialWeekend: toBool(r.isWeekend) || isWeekendDateStr(dateStr),
+          specialReason: String(r.specialReason || ''),
+          specialistApproved: toBool(r.specialistApproved),
+          name: String(r.name || ''),
+          ic: sanitizeIC(r.ic),
+          age: r.age !== '' && r.age !== null && r.age !== undefined ? Number(r.age) : '',
+          bmi: parseBMI(r.bmi),
+          parity: String(r.parity || ''),
+          ga: String(r.ga || ''),
+          indication: String(r.indication || ''),
+          bookedBy: String(r.bookedBy || ''),
+          specialist: String(r.specialist || ''),
+          createdAt: r.createdAt || '',
+        });
+      });
+
+      (data.ongoing || []).forEach(r => {
+        if (!r.id && !r.name) return;
+        let veHistory = [];
+        if (r.veHistoryJson) {
+          try {
+            const parsed = typeof r.veHistoryJson === 'string' ? JSON.parse(r.veHistoryJson) : r.veHistoryJson;
+            if (Array.isArray(parsed)) veHistory = parsed;
+          } catch (_) {
+            veHistory = [];
+          }
+        }
+        const bs = r.bishopScore !== '' && r.bishopScore !== null && r.bishopScore !== undefined ? Number(r.bishopScore) : 0;
+        normalized.push({
+          id: String(r.id || ('ong-' + Date.now() + Math.random())),
+          status: 'ongoing',
+          ward: String(r.ward || 'Ward 7A'),
+          name: String(r.name || ''),
+          ic: sanitizeIC(r.ic),
+          age: r.age !== '' && r.age !== null && r.age !== undefined ? Number(r.age) : '',
+          bmi: parseBMI(r.bmi),
+          parity: String(r.parity || ''),
+          ga: String(r.ga || ''),
+          indication: String(r.indication || ''),
+          method: String(r.method || ''),
+          startTime: r.startTime ? new Date(r.startTime).toISOString() : '',
+          bishopScore: Number.isFinite(bs) ? bs : 0,
+          latestVE: String(r.latestVE || ''),
+          latestVETime: r.updatedAt ? new Date(r.updatedAt).toISOString() : '',
+          awaitingLR: toBool(r.awaitingLR) || bs >= 6,
+          veHistory,
+          bookedBy: String(r.bookedBy || ''),
+          specialist: String(r.specialist || ''),
+        });
+      });
+
+      (data.completed || []).forEach(r => {
+        if (!r.id && !r.name) return;
+        normalized.push({
+          id: String(r.id || ('cmp-' + Date.now() + Math.random())),
+          status: 'completed',
+          ward: String(r.ward || 'Ward 7A'),
+          name: String(r.name || ''),
+          ic: sanitizeIC(r.ic),
+          age: r.age !== '' && r.age !== null && r.age !== undefined ? Number(r.age) : '',
+          bmi: parseBMI(r.bmi),
+          parity: String(r.parity || ''),
+          ga: String(r.ga || ''),
+          indication: String(r.indication || ''),
+          method: String(r.method || ''),
+          outcome: String(r.outcome || 'SVD'),
+          completedAt: r.completedAt ? new Date(r.completedAt).toISOString() : '',
+          outcomeRemarks: String(r.notes || ''),
+        });
+      });
+
+      return normalized;
+    }
+
+    async function testAndConnectSheets() {
+      saveSheetsSettings();
+      if (!sheetsUrl) {
+        updateSyncUI('local');
+        showToast('Please enter a Google Apps Script Web App URL first.');
+        return;
+      }
+      await pullFromGoogleSheets(true);
+    }
+
+    async function pullFromGoogleSheets(showFeedback = false) {
+      if (!sheetsUrl) {
+        if (showFeedback) showToast('No Google Sheets URL configured.');
+        return;
+      }
+      updateSyncUI('syncing', 'Pulling latest records from Google Sheets...');
+      try {
+        const res = await fetch(sheetsUrl, { method: 'GET' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.message || 'Invalid Apps Script response');
+
+        cases = deserializeFromSheets(data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+        renderAll();
+
+        const summary = `Pulled ${(data.bookings || []).length} booked, ${(data.ongoing || []).length} ongoing, ${(data.completed || []).length} completed.`;
+        updateSyncUI('synced', summary);
+        if (showFeedback) showToast('Synced from Google Sheets ✓');
+      } catch (err) {
+        console.error('Pull from Google Sheets failed:', err);
+        updateSyncUI('error', `Pull failed: ${err.message}. Verify Web App is deployed to "Anyone".`);
+        if (showFeedback) showToast('Google Sheets sync error — using local cache.');
+      }
+    }
+
+    async function pushAllToGoogleSheets(showFeedback = false) {
+      saveSheetsSettings();
+      if (!sheetsUrl) {
+        if (showFeedback) showToast('No Google Sheets URL configured.');
+        return;
+      }
+      updateSyncUI('syncing', 'Pushing records to Google Sheets...');
+      try {
+        const payload = {
+          action: 'syncAll',
+          ...serializeForSheets(),
+        };
+        // IMPORTANT: text/plain avoids CORS preflight OPTIONS request which Apps Script rejects
+        const res = await fetch(sheetsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.message || 'Sync error');
+
+        updateSyncUI('synced', 'All local records pushed to Google Sheets.');
+        if (showFeedback) showToast('Pushed to Google Sheets ✓');
+      } catch (err) {
+        console.error('Push to Google Sheets failed:', err);
+        updateSyncUI('error', `Push failed: ${err.message}. Changes remain saved locally.`);
+        if (showFeedback) showToast('Push failed — data safely stored locally.');
+      }
+    }
+
+    function disconnectSheets() {
+      document.getElementById('sheetsUrlInput').value = '';
+      sheetsUrl = '';
+      localStorage.setItem(SHEETS_URL_KEY, '__LOCAL_ONLY__');
+      updateSyncUI('local');
+      showToast('Disconnected — switched to Local Only mode.');
+    }
+
+    async function resetToDefaultSheetsUrl() {
+      sheetsUrl = DEFAULT_APPS_SCRIPT_URL;
+      document.getElementById('sheetsUrlInput').value = sheetsUrl;
+      localStorage.setItem(SHEETS_URL_KEY, sheetsUrl);
+      updateSyncUI('ready', 'Restored default HTPN Kajang Google Sheets URL.');
+      await pullFromGoogleSheets(true);
+    }
+
+    function openSheetsModal() {
+      document.getElementById('sheetsUrlInput').value = sheetsUrl;
+      document.getElementById('sheetsAutoSyncToggle').checked = autoSyncEnabled;
+      openModal('modalSheets');
+    }
+
+    // ==================== PRELOADED DEMO DATA (ALL 3 BMI TIERS: <30, 30-40, >40) ====================
+    function getDemoCases() {
+      const wd0 = getNextWeekdayStr(0);
+      const wd1 = getNextWeekdayStr(1);
+      const wd2 = getNextWeekdayStr(2);
+      const sat = getUpcomingSaturdayStr();
+
+      return [
+        // 5 ONGOING CASES (3 in Ward 7A, 2 in Ward 7B; 2 Favorable BS >= 6; BMI <30, 30-40, >40)
+        {
+          id: 'ong-1',
+          status: 'ongoing',
+          ward: 'Ward 7A',
+          name: 'Nurul Aisyah binti Mohd Razak',
+          ic: '950412105432',
+          age: 31,
+          bmi: 32.4, // Amber (30-40)
+          parity: 'G2P1',
+          ga: '39+2/52',
+          indication: 'GDM on Insulin',
+          method: 'Prostin E2 3mg #1',
+          startTime: offsetHoursISO(-7),
+          bishopScore: 8,
+          bishopParts: { d: 2, e: 2, s: 2, c: 1, p: 1 },
+          latestVE: 'Os 3cm, 70% effaced, St -1, medium, mid-position, membranes intact, vertex',
+          latestVETime: offsetHoursISO(-0.5),
+          awaitingLR: true,
+          veHistory: [
+            { time: offsetHoursISO(-7), bs: 3, finding: 'Os 1cm, 30% effaced, St -2, firm, posterior, MI — Prostin E2 3mg #1 inserted' },
+            { time: offsetHoursISO(-0.5), bs: 8, finding: 'Os 3cm, 70% effaced, St -1, medium, mid-position, MI — Favorable, informed LR' },
+          ],
+        },
+        {
+          id: 'ong-2',
+          status: 'ongoing',
+          ward: 'Ward 7B',
+          name: 'Siti Hajar binti Abdullah',
+          ic: '920819086128',
+          age: 34,
+          bmi: 26.8, // Green (<30)
+          parity: 'G3P2',
+          ga: '40+5/52',
+          indication: 'Post-dates',
+          method: 'Prostin E2 1.5mg #2',
+          startTime: offsetHoursISO(-11),
+          bishopScore: 9,
+          bishopParts: { d: 2, e: 2, s: 2, c: 2, p: 1 },
+          latestVE: 'Os 3-4cm, 70% effaced, St -1, soft, anterior, membranes bulging, CTG reactive',
+          latestVETime: offsetHoursISO(-0.8),
+          awaitingLR: true,
+          veHistory: [
+            { time: offsetHoursISO(-11), bs: 4, finding: 'Os 1-2cm, 40% effaced, St -2, medium, posterior' },
+            { time: offsetHoursISO(-0.8), bs: 9, finding: 'Os 3-4cm, 70% effaced, St -1, soft, anterior — Ready for ARM in LR' },
+          ],
+        },
+        {
+          id: 'ong-3',
+          status: 'ongoing',
+          ward: 'Ward 7A',
+          name: 'Kavitha a/p Subramaniam',
+          ic: '980205145890',
+          age: 28,
+          bmi: 42.3, // Red (>40)
+          parity: 'G1P0',
+          ga: '38+4/52',
+          indication: 'PIH / Gestational Hypertension',
+          method: 'Prostin E2 3mg #1',
+          startTime: offsetHoursISO(-3.5),
+          bishopScore: 4,
+          bishopParts: { d: 1, e: 1, s: 0, c: 1, p: 1 },
+          latestVE: 'Os 1cm, 40% effaced, St -3, medium, mid-position, membranes intact, BP 136/84',
+          latestVETime: offsetHoursISO(-3.5),
+          awaitingLR: false,
+          veHistory: [
+            { time: offsetHoursISO(-3.5), bs: 4, finding: 'Os 1cm, 40% effaced, St -3, medium, mid-position — Prostin E2 3mg #1 inserted' },
+          ],
+        },
+        {
+          id: 'ong-4',
+          status: 'ongoing',
+          ward: 'Ward 7B',
+          name: 'Lim Mei Ling',
+          ic: '941123105114',
+          age: 32,
+          bmi: 24.5, // Green (<30)
+          parity: 'G2P1 (Prev 1 LSCS)',
+          ga: '39+0/52',
+          indication: 'Oligohydramnios (AFI 4.5cm)',
+          method: 'Foley Catheter (Balloon)',
+          startTime: offsetHoursISO(-5),
+          bishopScore: 3,
+          bishopParts: { d: 1, e: 0, s: 0, c: 1, p: 1 },
+          latestVE: 'Os 1-2cm, 30% effaced, St -3, medium, mid-position, Foley 30ml in-situ, CTG reassuring',
+          latestVETime: offsetHoursISO(-5),
+          awaitingLR: false,
+          veHistory: [
+            { time: offsetHoursISO(-5), bs: 3, finding: 'Foley catheter inserted mechanically (Prev 1 LSCS). CTG reactive.' },
+          ],
+        },
+        {
+          id: 'ong-5',
+          status: 'ongoing',
+          ward: 'Ward 7A',
+          name: 'Farah Nadia binti Ismail',
+          ic: '990714055206',
+          age: 27,
+          bmi: 34.1, // Amber (30-40)
+          parity: 'G1P0',
+          ga: '38+6/52',
+          indication: 'PROM (>18 hours)',
+          method: 'Prostin E2 3mg #1',
+          startTime: offsetHoursISO(-2),
+          bishopScore: 5,
+          bishopParts: { d: 1, e: 1, s: 1, c: 1, p: 1 },
+          latestVE: 'Os 2cm, 50% effaced, St -2, medium, mid-position, clear liquor draining',
+          latestVETime: offsetHoursISO(-2),
+          awaitingLR: false,
+          veHistory: [
+            { time: offsetHoursISO(-2), bs: 5, finding: 'Os 2cm, 50% effaced, St -2, clear liquor, IV Ampicillin started' },
+          ],
+        },
+
+        // BOOKED CASES ACROSS CURRENT WEEK + 1 WEEKEND SPECIAL CASE
+        {
+          id: 'bk-1',
+          status: 'booked',
+          plannedDate: wd0,
+          name: 'Noraini binti Hassan',
+          ic: '910322105564',
+          age: 35,
+          bmi: 41.2, // Red (>40)
+          parity: 'G4P3',
+          ga: '38+3/52',
+          indication: 'GDM on Insulin',
+          bookedBy: 'Dr. Amirah (MO)',
+          specialist: 'Dr. Hajah Zaleha',
+          isSpecialWeekend: false,
+          specialReason: '',
+        },
+        {
+          id: 'bk-2',
+          status: 'booked',
+          plannedDate: wd0,
+          name: 'Tan Shu Fen',
+          ic: '960910146012',
+          age: 30,
+          bmi: 23.9, // Green (<30)
+          parity: 'G1P0',
+          ga: '40+6/52',
+          indication: 'Post-dates',
+          bookedBy: 'Dr. Syafiq (MO)',
+          specialist: 'Dr. Suresh Kumar',
+          isSpecialWeekend: false,
+          specialReason: '',
+        },
+        {
+          id: 'bk-3',
+          status: 'booked',
+          plannedDate: wd1,
+          name: 'Wan Nurul Iman binti Wan Azman',
+          ic: '970518035448',
+          age: 29,
+          bmi: 21.6, // Green (<30)
+          parity: 'G2P1',
+          ga: '38+1/52',
+          indication: 'SGA / IUGR (EFW <10th centile)',
+          bookedBy: 'Dr. Priya (MO)',
+          specialist: 'Dr. Hajah Zaleha',
+          isSpecialWeekend: false,
+          specialReason: '',
+        },
+        {
+          id: 'bk-4',
+          status: 'booked',
+          plannedDate: wd1,
+          name: 'Aina Sofea binti Kamaruddin',
+          ic: '000129105312',
+          age: 26,
+          bmi: 31.5, // Amber (30-40)
+          parity: 'G1P0',
+          ga: '39+3/52',
+          indication: 'Reduced Fetal Movement (Recurrent)',
+          bookedBy: 'Dr. Amirah (MO)',
+          specialist: 'Dr. Suresh Kumar',
+          isSpecialWeekend: false,
+          specialReason: '',
+        },
+        {
+          id: 'bk-5',
+          status: 'booked',
+          plannedDate: wd2,
+          name: 'Deepa a/p Murugan',
+          ic: '930615105820',
+          age: 33,
+          bmi: 36.6, // Amber (30-40)
+          parity: 'G3P2',
+          ga: '38+0/52',
+          indication: 'GDM on Metformin + Insulin',
+          bookedBy: 'Dr. Syafiq (MO)',
+          specialist: 'Dr. Hajah Zaleha',
+          isSpecialWeekend: false,
+          specialReason: '',
+        },
+        {
+          id: 'bk-6',
+          status: 'booked',
+          plannedDate: sat,
+          name: 'Zulaikha binti Zainal Abidin',
+          ic: '940804105998',
+          age: 32,
+          bmi: 40.8, // Red (>40)
+          parity: 'G2P1',
+          ga: '37+4/52',
+          indication: 'Pre-eclampsia without severe features',
+          bookedBy: 'Dr. Priya (MO)',
+          specialist: 'Dr. Suresh Kumar',
+          isSpecialWeekend: true,
+          specialReason: 'Escalating BP trend at 37+4/52; Specialist approved weekend IOL.',
+        },
+
+        // COMPLETED CASES TODAY
+        {
+          id: 'cmp-1',
+          status: 'completed',
+          ward: 'Ward 7A',
+          name: 'Hafizah binti Osman',
+          ic: '951201105182',
+          age: 30,
+          bmi: 28.4, // Green (<30)
+          parity: 'G2P1',
+          ga: '39+5/52',
+          indication: 'GDM on Diet Control',
+          method: 'ARM + Pitocin',
+          outcome: 'SVD',
+          completedAt: offsetHoursISO(-2.5),
+          outcomeRemarks: 'SVD baby boy 3.18kg, Apgar 9/10, EBL 200ml. Mother & baby well.',
+        },
+        {
+          id: 'cmp-2',
+          status: 'completed',
+          ward: 'Ward 7B',
+          name: 'Chong Wei Ting',
+          ic: '930311145724',
+          age: 33,
+          bmi: 33.8, // Amber (30-40)
+          parity: 'G1P0',
+          ga: '40+6/52',
+          indication: 'Post-dates',
+          method: 'Prostin E2 3mg #2 + Pitocin',
+          outcome: 'EMLSCS',
+          completedAt: offsetHoursISO(-4),
+          outcomeRemarks: 'EMLSCS for fetal distress (pathological CTG). Baby girl 3.35kg, Apgar 8/9.',
+        },
+      ];
+    }
+
+    // ==================== PERSISTENCE (LOCALSTORAGE + AUTO-SYNC) ====================
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          cases = JSON.parse(raw);
+          let migrated = false;
+          cases = cases.map(c => {
+            const cleanIC = sanitizeIC(c.ic);
+            if (c.ic !== cleanIC) {
+              migrated = true;
+              return { ...c, ic: cleanIC };
+            }
+            return c;
+          });
+          if (migrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+        } else if (sheetsUrl) {
+          // Clean initial state while waiting for live pull from Google Sheets
+          cases = [];
+        } else {
+          cases = getDemoCases();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+        }
+      } catch (err) {
+        cases = sheetsUrl ? [] : getDemoCases();
+      }
+    }
+
+    function saveState(triggerCloudSync = true) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cases));
+      } catch (err) {
+        console.error('Failed saving to localStorage', err);
+      }
+      if (triggerCloudSync && sheetsUrl && autoSyncEnabled) {
+        pushAllToGoogleSheets(false);
+      }
+    }
+
+    // ==================== MASTER RENDER ====================
+    function renderAll() {
+      renderKPIs();
+      renderOngoing();
+      renderCalendar();
+      renderSelectedDatePanel();
+      renderCompleted();
+    }
+
+    function isCaseFavorable(c) {
+      return Boolean(c.awaitingLR) || Number(c.bishopScore || 0) >= 6;
+    }
+
+    // ==================== RENDER KPIs ====================
+    function renderKPIs() {
+      const todayStr = toLocalDateStr(new Date());
+      const todayWeekend = isWeekendDateStr(todayStr);
+      const todayBooked = cases.filter(c => c.status === 'booked' && c.plannedDate === todayStr).length;
+
+      const ongoing = cases.filter(c => c.status === 'ongoing');
+      const ward7A = ongoing.filter(c => c.ward === 'Ward 7A').length;
+      const ward7B = ongoing.filter(c => c.ward === 'Ward 7B').length;
+      const favorable = ongoing.filter(isCaseFavorable).length;
+
+      const completed = cases.filter(c => c.status === 'completed');
+      const deliveredToday = completed.filter(c => c.completedAt && toLocalDateStr(new Date(c.completedAt)) === todayStr);
+
+      // KPI 1
+      document.getElementById('kpiTodayCount').textContent = todayBooked;
+      document.getElementById('kpiTodayCapLabel').textContent = todayWeekend ? 'weekend special case(s)' : `/ ${WEEKDAY_LIMIT} weekday slots`;
+      const pct = todayWeekend ? (todayBooked > 0 ? 100 : 0) : Math.min(100, Math.round((todayBooked / WEEKDAY_LIMIT) * 100));
+      const bar = document.getElementById('kpiTodayBar');
+      bar.style.width = `${pct}%`;
+      bar.className = `h-1.5 rounded-full transition-all duration-300 ${
+        todayWeekend ? 'bg-pink-500' : todayBooked >= WEEKDAY_LIMIT ? 'bg-rose-600' : todayBooked >= 8 ? 'bg-amber-500' : 'bg-emerald-500'
+      }`;
+
+      // KPI 2
+      document.getElementById('kpiOngoingTotal').textContent = ongoing.length;
+      document.getElementById('kpiWard7A').textContent = `Ward 7A: ${ward7A}`;
+      document.getElementById('kpiWard7B').textContent = `Ward 7B: ${ward7B}`;
+
+      // KPI 3
+      document.getElementById('kpiFavorableCount').textContent = favorable;
+      document.getElementById('pillFavorableCount').textContent = favorable;
+
+      // KPI 4
+      document.getElementById('kpiDeliveredToday').textContent = deliveredToday.length;
+      const svd = deliveredToday.filter(c => c.outcome === 'SVD').length;
+      const inst = deliveredToday.filter(c => c.outcome === 'Instrumental').length;
+      const eml = deliveredToday.filter(c => c.outcome === 'EMLSCS').length;
+      document.getElementById('kpiDeliveredSplit').textContent = `SVD: ${svd} • Inst: ${inst} • EMLSCS: ${eml}`;
+
+      // Nav Badges
+      document.getElementById('badgeOngoing').textContent = ongoing.length;
+      document.getElementById('badgeBooked').textContent = cases.filter(c => c.status === 'booked').length;
+      document.getElementById('badgeCompleted').textContent = completed.length;
+    }
+
+    // ==================== TAB 1: ONGOING IOLs RENDER ====================
+    function renderOngoing() {
+      const q = (document.getElementById('ongoingSearch').value || '').toLowerCase().trim();
+      let list = cases.filter(c => c.status === 'ongoing');
+
+      if (ongoingFilter === 'Ward 7A' || ongoingFilter === 'Ward 7B') {
+        list = list.filter(c => c.ward === ongoingFilter);
+      } else if (ongoingFilter === 'Favorable') {
+        list = list.filter(isCaseFavorable);
+      }
+
+      if (q) {
+        const qDigits = q.replace(/\D/g, '');
+        list = list.filter(c =>
+          (c.name || '').toLowerCase().includes(q) ||
+          sanitizeIC(c.ic).includes(qDigits || q) ||
+          (c.indication || '').toLowerCase().includes(q) ||
+          (c.method || '').toLowerCase().includes(q)
+        );
+      }
+
+      // Sort: Favorable / Awaiting Call LR ALWAYS at top, then highest Bishop score
+      list.sort((a, b) => {
+        const favA = isCaseFavorable(a) ? 1 : 0;
+        const favB = isCaseFavorable(b) ? 1 : 0;
+        if (favB !== favA) return favB - favA;
+        return (b.bishopScore || 0) - (a.bishopScore || 0);
+      });
+
+      const grid = document.getElementById('ongoingGrid');
+      const empty = document.getElementById('ongoingEmpty');
+
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.innerHTML = list.map(c => {
+        const favorable = isCaseFavorable(c);
+        const wardBadge = c.ward === 'Ward 7B'
+          ? 'bg-pink-100 text-pink-800 border-pink-300'
+          : 'bg-violet-100 text-violet-800 border-violet-300';
+
+        const cardBorder = favorable
+          ? 'border-2 border-fuchsia-400 ring-2 ring-pink-200/80 bg-gradient-to-b from-fuchsia-50/50 to-white'
+          : 'border border-purple-200/80 bg-white/95';
+
+        const bsBadge = (c.bishopScore >= 6)
+          ? 'bg-fuchsia-600 text-white'
+          : 'bg-purple-900 text-white';
+
+        return `
+          <article class="rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between gap-4 transition ${cardBorder}">
+            <div>
+              <!-- Favorable Highlight Banner -->
+              ${favorable ? `
+                <div class="mb-3 px-3 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 via-pink-600 to-purple-600 text-white flex flex-wrap items-center justify-between gap-2 shadow-xs badge-pulse">
+                  <span class="text-[11px] sm:text-xs font-extrabold tracking-wide flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-amber-200"></i>
+                    FAVORABLE BISHOP — AWAITING CALL LABOUR ROOM
+                  </span>
+                  <span class="text-[11px] font-bold bg-white/20 px-2 py-0.5 rounded-lg">BS ${c.bishopScore ?? 0}/13</span>
+                </div>
+              ` : ''}
+
+              <!-- Top Row: Ward Badge, Name, IC, BMI, Bishop Score -->
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-lg border ${wardBadge}">${escapeHTML(c.ward)}</span>
+                    <h3 class="text-base font-extrabold text-purple-950 leading-tight">${escapeHTML(c.name)}</h3>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-purple-900/80 font-medium">
+                    <span class="font-mono"><i class="fa-regular fa-id-card text-purple-400 mr-1"></i>${escapeHTML(sanitizeIC(c.ic))}</span>
+                    <span><strong>Age:</strong> ${escapeHTML(c.age)} yrs</span>
+                    ${formatBMIBadge(c.bmi)}
+                    <span><strong>Parity:</strong> ${escapeHTML(c.parity)}</span>
+                    <span><strong>GA:</strong> ${escapeHTML(c.ga)}</span>
+                  </div>
+                </div>
+
+                <!-- Prominent Bishop Score Badge -->
+                <div class="shrink-0 text-center px-3 py-1.5 rounded-xl ${bsBadge} shadow-xs">
+                  <div class="text-[10px] font-bold uppercase tracking-wider opacity-85">Bishop</div>
+                  <div class="text-base font-extrabold leading-tight">BS ${c.bishopScore ?? 0}/13</div>
+                </div>
+              </div>
+
+              <!-- Indication & Method Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3.5 text-xs">
+                <div class="bg-purple-50/60 border border-purple-200/70 rounded-xl p-2.5">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-purple-500">Indication for IOL</span>
+                  <span class="font-bold text-purple-950 mt-0.5 block">${escapeHTML(c.indication)}</span>
+                </div>
+                <div class="bg-pink-50/50 border border-pink-200/70 rounded-xl p-2.5">
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-pink-500">Method of IOL Used</span>
+                  <span class="font-bold text-purple-900 mt-0.5 block">${escapeHTML(c.method)}</span>
+                  <span class="text-[11px] text-purple-700/75 block mt-0.5"><i class="fa-regular fa-clock mr-1"></i>Started: ${formatShortDateTime(c.startTime)}</span>
+                </div>
+              </div>
+
+              <!-- Latest VE Finding -->
+              <div class="mt-2.5 p-3 rounded-xl border ${favorable ? 'bg-fuchsia-50/70 border-fuchsia-200' : 'bg-purple-50/40 border-purple-200/70'}">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider ${favorable ? 'text-fuchsia-800' : 'text-purple-600'}">Latest VE Finding</span>
+                  <span class="text-[11px] font-semibold text-purple-600/80">${formatShortDateTime(c.latestVETime)}</span>
+                </div>
+                <p class="text-xs font-semibold text-purple-950 leading-relaxed">${escapeHTML(c.latestVE || 'No VE recorded yet')}</p>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-purple-100">
+              <button onclick="openUpdateVEModal('${c.id}')" class="flex-1 min-w-[125px] bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-stethoscope"></i>
+                <span>Update VE</span>
+              </button>
+              <button onclick="toggleAwaitingLR('${c.id}')" title="Toggle Awaiting Call Labour Room" class="${favorable ? 'bg-pink-100 hover:bg-pink-200 text-pink-900 border border-pink-300' : 'bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200'} text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-bell"></i>
+                <span>${favorable ? 'Awaiting LR ✓' : 'Flag LR'}</span>
+              </button>
+              <button onclick="openOutcomeModal('${c.id}')" class="flex-1 min-w-[140px] ${favorable ? 'bg-fuchsia-600 hover:bg-fuchsia-700 text-white shadow-xs' : 'bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-900 border border-fuchsia-200'} text-xs font-bold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-check-double"></i>
+                <span>${favorable ? 'Called to LR / Outcome' : 'Complete / Outcome'}</span>
+              </button>
+              <button onclick="openEditOngoingModal('${c.id}')" title="Edit Patient Details" class="bg-purple-50 hover:bg-purple-100 text-purple-800 text-xs font-bold py-2.5 px-3 rounded-xl transition">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="requestDeleteCase('${c.id}')" title="Delete Case" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-2.5 px-3 rounded-xl transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function toggleAwaitingLR(caseId) {
+      const idx = cases.findIndex(c => c.id === caseId);
+      if (idx === -1) return;
+      const currentlyFav = isCaseFavorable(cases[idx]);
+      if (currentlyFav && Number(cases[idx].bishopScore || 0) >= 6) {
+        showToast('Bishop Score is ≥ 6 (automatically Favorable for LR).');
+        return;
+      }
+      cases[idx].awaitingLR = !cases[idx].awaitingLR;
+      saveState();
+      renderAll();
+      showToast(cases[idx].awaitingLR ? 'Flagged as Awaiting Call Labour Room' : 'Removed Awaiting Call LR flag');
+    }
+
+    function setOngoingFilter(filter) {
+      ongoingFilter = filter;
+      document.querySelectorAll('.ongoing-pill').forEach(btn => {
+        const f = btn.dataset.filter;
+        const active = f === filter;
+        if (f === 'All') {
+          btn.className = active
+            ? 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-800 text-white transition'
+            : 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-800 hover:bg-purple-100 transition';
+        } else if (f === 'Ward 7A') {
+          btn.className = active
+            ? 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white border border-violet-700 transition'
+            : 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-violet-100 text-violet-800 border border-violet-200 hover:bg-violet-200/70 transition';
+        } else if (f === 'Ward 7B') {
+          btn.className = active
+            ? 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-pink-600 text-white border border-pink-700 transition'
+            : 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-pink-100 text-pink-800 border border-pink-200 hover:bg-pink-200/70 transition';
+        } else if (f === 'Favorable') {
+          btn.className = active
+            ? 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-fuchsia-600 text-white border-2 border-fuchsia-700 transition flex items-center gap-1.5'
+            : 'ongoing-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-fuchsia-50 text-fuchsia-900 border-2 border-fuchsia-400 hover:bg-fuchsia-100 transition flex items-center gap-1.5';
+        }
+      });
+      renderOngoing();
+    }
+
+    function quickFilterFavorable() {
+      switchTab('ongoing');
+      setOngoingFilter('Favorable');
+    }
+
+    // ==================== TAB 2: IOL BOOKING CALENDAR ====================
+    function renderCalendar() {
+      const monthName = new Date(calYear, calMonth, 1).toLocaleDateString('en-MY', { month: 'long', year: 'numeric' });
+      document.getElementById('calendarMonthLabel').textContent = monthName;
+
+      const firstDay = new Date(calYear, calMonth, 1);
+      const lastDay = new Date(calYear, calMonth + 1, 0);
+      const daysInMonth = lastDay.getDate();
+
+      const startOffset = (firstDay.getDay() + 6) % 7;
+      const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+      const todayStr = toLocalDateStr(new Date());
+      const bookedCases = cases.filter(c => c.status === 'booked');
+
+      let html = '';
+      for (let i = 0; i < totalCells; i++) {
+        const dayNum = i - startOffset + 1;
+        if (dayNum < 1 || dayNum > daysInMonth) {
+          html += `<div class="min-h-[76px] sm:min-h-[92px] bg-purple-50/40 p-1.5"></div>`;
+          continue;
+        }
+
+        const dateStr = `${calYear}-${pad(calMonth + 1)}-${pad(dayNum)}`;
+        const weekend = isWeekendDateStr(dateStr);
+        const count = bookedCases.filter(c => c.plannedDate === dateStr).length;
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === selectedDateStr;
+
+        let cellBg = weekend ? 'bg-pink-50/80 hover:bg-pink-100/80' : 'bg-white hover:bg-purple-50/60';
+        if (isSelected) cellBg = weekend ? 'bg-pink-100 ring-2 ring-inset ring-pink-500' : 'bg-purple-100/70 ring-2 ring-inset ring-purple-600';
+
+        let statusHTML = '';
+        if (weekend) {
+          statusHTML = `
+            <div class="mt-1.5 space-y-1">
+              <span class="block text-[9px] sm:text-[10px] font-bold text-pink-700 leading-tight">Special Only</span>
+              ${count > 0 ? `<span class="inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">${count} Special</span>` : ''}
+            </div>
+          `;
+        } else {
+          const pct = Math.min(100, Math.round((count / WEEKDAY_LIMIT) * 100));
+          const isFull = count >= WEEKDAY_LIMIT;
+          const isHigh = !isFull && count >= 8;
+          const badgeCls = isFull
+            ? 'bg-rose-600 text-white'
+            : isHigh
+              ? 'bg-amber-100 text-amber-800'
+              : count > 0
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-purple-50 text-purple-500';
+          const barCls = isFull ? 'bg-rose-600' : isHigh ? 'bg-amber-500' : 'bg-emerald-500';
+
+          statusHTML = `
+            <div class="mt-1.5 space-y-1">
+              <span class="inline-block text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${badgeCls}">
+                ${count}/${WEEKDAY_LIMIT}${isFull ? ' FULL' : ''}
+              </span>
+              <div class="w-full bg-purple-100 rounded-full h-1 overflow-hidden">
+                <div class="${barCls} h-1 rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        html += `
+          <button type="button" onclick="selectCalendarDate('${dateStr}')" class="min-h-[76px] sm:min-h-[92px] p-1.5 sm:p-2 text-left flex flex-col justify-between transition focus:outline-none ${cellBg}">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs sm:text-sm font-bold ${isToday ? 'w-6 h-6 rounded-full bg-purple-700 text-white flex items-center justify-center' : weekend ? 'text-pink-900' : 'text-purple-950'}">
+                ${dayNum}
+              </span>
+              ${isToday ? '<span class="hidden sm:inline text-[9px] font-extrabold text-purple-700 uppercase">Today</span>' : ''}
+            </div>
+            ${statusHTML}
+          </button>
+        `;
+      }
+
+      document.getElementById('calendarGrid').innerHTML = html;
+    }
+
+    function changeMonth(delta) {
+      calMonth += delta;
+      if (calMonth < 0) {
+        calMonth = 11;
+        calYear--;
+      } else if (calMonth > 11) {
+        calMonth = 0;
+        calYear++;
+      }
+      renderCalendar();
+    }
+
+    function goToToday() {
+      const now = new Date();
+      calYear = now.getFullYear();
+      calMonth = now.getMonth();
+      selectedDateStr = toLocalDateStr(now);
+      renderCalendar();
+      renderSelectedDatePanel();
+    }
+
+    function selectCalendarDate(dateStr) {
+      selectedDateStr = dateStr;
+      renderCalendar();
+      renderSelectedDatePanel();
+    }
+
+    function renderSelectedDatePanel() {
+      const weekend = isWeekendDateStr(selectedDateStr);
+      const dayCases = cases.filter(c => c.status === 'booked' && c.plannedDate === selectedDateStr);
+      const count = dayCases.length;
+      const isFull = !weekend && count >= WEEKDAY_LIMIT;
+
+      const headerEl = document.getElementById('selectedDateHeader');
+      headerEl.innerHTML = `
+        <div class="flex flex-col gap-3">
+          <div>
+            <h3 class="text-base font-extrabold text-purple-950">${formatReadableDate(selectedDateStr)}</h3>
+            <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+              ${weekend
+                ? `<span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-pink-100 text-pink-800 border border-pink-300">Weekend — Special Cases Only</span>
+                   <span class="text-xs font-semibold text-purple-800">${count} special case(s) booked</span>`
+                : `<span class="text-xs font-bold px-2.5 py-0.5 rounded-lg ${isFull ? 'bg-rose-600 text-white' : count >= 8 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}">${count} / ${WEEKDAY_LIMIT} Slots Booked${isFull ? ' (FULL)' : ''}</span>
+                   <span class="text-xs font-semibold text-purple-700/80">${Math.max(0, WEEKDAY_LIMIT - count)} remaining</span>`
+              }
+            </div>
+          </div>
+
+          ${isFull
+            ? `<div class="px-3 py-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center gap-2">
+                 <i class="fa-solid fa-ban"></i>
+                 <span>Daily Limit of ${WEEKDAY_LIMIT} Reached — Cannot book additional cases on this date.</span>
+               </div>`
+            : `<button onclick="openBookingModal(null, '${selectedDateStr}')" class="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs flex items-center justify-center gap-1.5 ${weekend ? 'bg-pink-600 hover:bg-pink-700 text-white' : 'bg-purple-700 hover:bg-purple-800 text-white'}">
+                 <i class="fa-solid fa-plus"></i>
+                 <span>${weekend ? 'Book Weekend Special Case' : 'Book Case for this Date'}</span>
+               </button>`
+          }
+        </div>
+      `;
+
+      const listEl = document.getElementById('selectedDateList');
+      if (dayCases.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-8 text-purple-400">
+            <i class="fa-regular fa-calendar-xmark text-2xl mb-2"></i>
+            <p class="text-sm font-semibold text-purple-900">No IOL cases booked for this date.</p>
+            <p class="text-xs text-purple-700/75 mt-0.5">${weekend ? 'Weekends are strictly reserved for Specialist-approved special cases.' : `Up to ${WEEKDAY_LIMIT} cases can be booked on this working day.`}</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = dayCases.map((c, idx) => `
+        <div class="rounded-xl border ${c.isSpecialWeekend ? 'border-pink-300 bg-pink-50/50' : 'border-purple-200 bg-purple-50/40'} p-3.5 space-y-2.5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-[11px] font-extrabold text-purple-400">#${idx + 1}</span>
+                <h4 class="text-sm font-extrabold text-purple-950">${escapeHTML(c.name)}</h4>
+                ${c.isSpecialWeekend ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">SPECIAL CASE</span>' : ''}
+              </div>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-purple-900/80 font-medium mt-1">
+                <span>IC: <span class="font-mono">${escapeHTML(sanitizeIC(c.ic))}</span> • ${escapeHTML(c.age)} yrs • ${escapeHTML(c.parity)} • GA ${escapeHTML(c.ga)}</span>
+                ${formatBMIBadge(c.bmi)}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs space-y-1 bg-white p-2.5 rounded-lg border border-purple-200/60">
+            <div><strong class="text-purple-700">Indication:</strong> <span class="font-bold text-purple-950">${escapeHTML(c.indication)}</span></div>
+            <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-purple-800/80">
+              <span><strong>Booked by:</strong> ${escapeHTML(c.bookedBy)}</span>
+              <span><strong>Specialist:</strong> ${escapeHTML(c.specialist)}</span>
+            </div>
+            ${c.isSpecialWeekend && c.specialReason ? `<div class="text-[11px] text-pink-800 font-semibold pt-1 border-t border-purple-100 mt-1"><i class="fa-solid fa-star text-amber-500 mr-1"></i>Reason: ${escapeHTML(c.specialReason)}</div>` : ''}
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 pt-1">
+            <button onclick="openAdmitFromBooking('${c.id}')" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2 px-3 rounded-lg transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-bed-pulse"></i>
+              <span>Admit &amp; Start IOL</span>
+            </button>
+            <button onclick="openBookingModal('${c.id}')" class="bg-white hover:bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Edit / Reschedule">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button onclick="requestDeleteCase('${c.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold py-2 px-2.5 rounded-lg transition" title="Cancel Booking">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ==================== BOOKING MODAL LOGIC ====================
+    function openBookingModal(editId = null, prefillDate = null) {
+      const form = document.getElementById('formBooking');
+      form.reset();
+      document.getElementById('bookId').value = '';
+      document.getElementById('bookSpecialConfirm').checked = false;
+
+      if (editId) {
+        const c = cases.find(x => x.id === editId);
+        if (!c) return;
+        document.getElementById('modalBookingTitle').textContent = 'Edit / Reschedule IOL Booking';
+        document.getElementById('bookId').value = c.id;
+        document.getElementById('bookDate').value = c.plannedDate;
+        document.getElementById('bookName').value = c.name;
+        document.getElementById('bookIC').value = sanitizeIC(c.ic);
+        document.getElementById('bookAge').value = c.age;
+        document.getElementById('bookBMI').value = c.bmi ?? '';
+        document.getElementById('bookParity').value = c.parity;
+        document.getElementById('bookGA').value = c.ga;
+        document.getElementById('bookIndication').value = c.indication;
+        document.getElementById('bookPerson').value = c.bookedBy;
+        document.getElementById('bookSpecialist').value = c.specialist;
+        document.getElementById('bookSpecialReason').value = c.specialReason || '';
+        document.getElementById('bookSpecialConfirm').checked = Boolean(c.isSpecialWeekend);
+      } else {
+        document.getElementById('modalBookingTitle').textContent = 'Book New IOL Case';
+        document.getElementById('bookDate').value = prefillDate || selectedDateStr || getNextWeekdayStr(1);
+      }
+
+      evaluateBookingDateRule();
+      openModal('modalBooking');
+    }
+
+    function evaluateBookingDateRule() {
+      const dateStr = document.getElementById('bookDate').value;
+      const editId = document.getElementById('bookId').value;
+      const alertEl = document.getElementById('bookDateAlert');
+      const specialBox = document.getElementById('weekendSpecialBox');
+      const reasonInput = document.getElementById('bookSpecialReason');
+      const confirmInput = document.getElementById('bookSpecialConfirm');
+      const saveBtn = document.getElementById('btnSaveBooking');
+
+      if (!dateStr) {
+        alertEl.classList.add('hidden');
+        specialBox.classList.add('hidden');
+        saveBtn.disabled = false;
+        return;
+      }
+
+      const weekend = isWeekendDateStr(dateStr);
+      const existingCount = cases.filter(c => c.status === 'booked' && c.plannedDate === dateStr && c.id !== editId).length;
+
+      alertEl.classList.remove('hidden');
+      if (weekend) {
+        specialBox.classList.remove('hidden');
+        reasonInput.required = true;
+        confirmInput.required = true;
+        saveBtn.disabled = false;
+        alertEl.className = 'mt-2 text-xs font-bold px-3 py-2 rounded-xl border bg-pink-50 border-pink-300 text-pink-900';
+        alertEl.innerHTML = `<i class="fa-solid fa-calendar-week mr-1.5"></i>Weekend (${dateStr}): ${existingCount} special case(s) booked. Specialist approval required.`;
+      } else {
+        specialBox.classList.add('hidden');
+        reasonInput.required = false;
+        confirmInput.required = false;
+
+        if (existingCount >= WEEKDAY_LIMIT) {
+          saveBtn.disabled = true;
+          alertEl.className = 'mt-2 text-xs font-bold px-3 py-2 rounded-xl border bg-rose-50 border-rose-300 text-rose-800';
+          alertEl.innerHTML = `<i class="fa-solid fa-ban mr-1.5"></i>Daily Limit of ${WEEKDAY_LIMIT} Reached (${existingCount}/${WEEKDAY_LIMIT}) for ${dateStr}. Please choose another date.`;
+        } else {
+          saveBtn.disabled = false;
+          const cls = existingCount >= 8 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-800';
+          alertEl.className = `mt-2 text-xs font-bold px-3 py-2 rounded-xl border ${cls}`;
+          alertEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i>Working Day (${dateStr}): ${existingCount} / ${WEEKDAY_LIMIT} slots booked (${WEEKDAY_LIMIT - existingCount} remaining).`;
+        }
+      }
+    }
+
+    function saveBooking(e) {
+      e.preventDefault();
+      const id = document.getElementById('bookId').value;
+      const dateStr = document.getElementById('bookDate').value;
+      const weekend = isWeekendDateStr(dateStr);
+      const existingCount = cases.filter(c => c.status === 'booked' && c.plannedDate === dateStr && c.id !== id).length;
+
+      if (!weekend && existingCount >= WEEKDAY_LIMIT) {
+        showToast(`Daily limit of ${WEEKDAY_LIMIT} cases reached for ${dateStr}`);
+        return;
+      }
+
+      const payload = {
+        plannedDate: dateStr,
+        name: document.getElementById('bookName').value.trim(),
+        ic: sanitizeIC(document.getElementById('bookIC').value),
+        age: parseInt(document.getElementById('bookAge').value, 10),
+        bmi: parseBMI(document.getElementById('bookBMI').value),
+        parity: document.getElementById('bookParity').value.trim(),
+        ga: document.getElementById('bookGA').value.trim(),
+        indication: document.getElementById('bookIndication').value.trim(),
+        bookedBy: document.getElementById('bookPerson').value.trim(),
+        specialist: document.getElementById('bookSpecialist').value.trim(),
+        isSpecialWeekend: weekend,
+        specialReason: weekend ? document.getElementById('bookSpecialReason').value.trim() : '',
+      };
+
+      if (id) {
+        const idx = cases.findIndex(c => c.id === id);
+        if (idx !== -1) cases[idx] = { ...cases[idx], ...payload };
+        showToast('Booking updated');
+      } else {
+        cases.push({
+          id: 'bk-' + Date.now(),
+          status: 'booked',
+          createdAt: new Date().toISOString(),
+          ...payload,
+        });
+        showToast(weekend ? 'Weekend special case booked' : 'IOL case booked');
+      }
+
+      selectedDateStr = dateStr;
+      const dObj = parseLocalDate(dateStr);
+      calYear = dObj.getFullYear();
+      calMonth = dObj.getMonth();
+
+      saveState();
+      closeModal('modalBooking');
+      renderAll();
+    }
+
+    // ==================== ADD / EDIT / ADMIT ONGOING IOL ====================
+    function openAddOngoingModal() {
+      document.getElementById('formOngoing').reset();
+      document.getElementById('ongMode').value = 'new';
+      document.getElementById('ongCaseId').value = '';
+      document.getElementById('modalOngoingTitle').textContent = 'Add Ongoing IOL Case';
+      document.getElementById('modalOngoingSub').textContent = 'Admit directly to Ward 7A or Ward 7B monitoring board';
+      document.getElementById('btnSaveOngoing').textContent = 'Add to Ongoing Board';
+      document.getElementById('ongStartTime').value = toDateTimeLocalVal(new Date());
+      document.getElementById('ongBishop').value = 3;
+      document.getElementById('ongMethod').value = 'Prostin E2 3mg #1';
+      document.querySelector('input[name="ongWard"][value="Ward 7A"]').checked = true;
+      openModal('modalOngoingForm');
+    }
+
+    function openAdmitFromBooking(bookingId) {
+      const c = cases.find(x => x.id === bookingId);
+      if (!c) return;
+      document.getElementById('formOngoing').reset();
+      document.getElementById('ongMode').value = 'admit';
+      document.getElementById('ongCaseId').value = c.id;
+      document.getElementById('modalOngoingTitle').textContent = 'Admit & Start IOL';
+      document.getElementById('modalOngoingSub').textContent = `Moving ${c.name} from Booking Calendar to Ongoing Board`;
+      document.getElementById('btnSaveOngoing').textContent = 'Admit & Start IOL';
+
+      document.getElementById('ongName').value = c.name;
+      document.getElementById('ongIC').value = sanitizeIC(c.ic);
+      document.getElementById('ongAge').value = c.age;
+      document.getElementById('ongBMI').value = c.bmi ?? '';
+      document.getElementById('ongParity').value = c.parity;
+      document.getElementById('ongGA').value = c.ga;
+      document.getElementById('ongIndication').value = c.indication;
+      document.getElementById('ongMethod').value = 'Prostin E2 3mg #1';
+      document.getElementById('ongStartTime').value = toDateTimeLocalVal(new Date());
+      document.getElementById('ongBishop').value = 3;
+      document.getElementById('ongVE').value = 'Os 1cm, 30% effaced, St -2, firm, posterior, MI';
+      document.querySelector('input[name="ongWard"][value="Ward 7A"]').checked = true;
+      openModal('modalOngoingForm');
+    }
+
+    function openEditOngoingModal(caseId) {
+      const c = cases.find(x => x.id === caseId);
+      if (!c) return;
+      document.getElementById('formOngoing').reset();
+      document.getElementById('ongMode').value = 'edit';
+      document.getElementById('ongCaseId').value = c.id;
+      document.getElementById('modalOngoingTitle').textContent = 'Edit Ongoing IOL Patient';
+      document.getElementById('modalOngoingSub').textContent = `Updating details for ${c.name}`;
+      document.getElementById('btnSaveOngoing').textContent = 'Save Changes';
+
+      document.querySelector(`input[name="ongWard"][value="${c.ward || 'Ward 7A'}"]`).checked = true;
+      document.getElementById('ongName').value = c.name;
+      document.getElementById('ongIC').value = sanitizeIC(c.ic);
+      document.getElementById('ongAge').value = c.age;
+      document.getElementById('ongBMI').value = c.bmi ?? '';
+      document.getElementById('ongParity').value = c.parity;
+      document.getElementById('ongGA').value = c.ga;
+      document.getElementById('ongIndication').value = c.indication;
+      document.getElementById('ongMethod').value = c.method || '';
+      document.getElementById('ongStartTime').value = c.startTime ? toDateTimeLocalVal(new Date(c.startTime)) : toDateTimeLocalVal(new Date());
+      document.getElementById('ongBishop').value = c.bishopScore ?? 0;
+      document.getElementById('ongVE').value = c.latestVE || '';
+      openModal('modalOngoingForm');
+    }
+
+    function saveOngoingForm(e) {
+      e.preventDefault();
+      const mode = document.getElementById('ongMode').value;
+      const id = document.getElementById('ongCaseId').value;
+      const ward = document.querySelector('input[name="ongWard"]:checked').value;
+      const bs = Math.max(0, Math.min(13, parseInt(document.getElementById('ongBishop').value, 10) || 0));
+      const veText = document.getElementById('ongVE').value.trim();
+      const startISO = new Date(document.getElementById('ongStartTime').value).toISOString();
+      const nowISO = new Date().toISOString();
+
+      const commonData = {
+        status: 'ongoing',
+        ward,
+        name: document.getElementById('ongName').value.trim(),
+        ic: sanitizeIC(document.getElementById('ongIC').value),
+        age: parseInt(document.getElementById('ongAge').value, 10),
+        bmi: parseBMI(document.getElementById('ongBMI').value),
+        parity: document.getElementById('ongParity').value.trim(),
+        ga: document.getElementById('ongGA').value.trim(),
+        indication: document.getElementById('ongIndication').value.trim(),
+        method: document.getElementById('ongMethod').value.trim(),
+        startTime: startISO,
+        bishopScore: bs,
+        latestVE: veText,
+      };
+
+      if (mode === 'new') {
+        cases.push({
+          id: 'ong-' + Date.now(),
+          ...commonData,
+          latestVETime: nowISO,
+          awaitingLR: bs >= 6,
+          veHistory: [{ time: nowISO, bs, finding: veText }],
+        });
+        showToast(`Added ${commonData.name} to ${ward}`);
+      } else if (mode === 'admit') {
+        const idx = cases.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          cases[idx] = {
+            ...cases[idx],
+            ...commonData,
+            latestVETime: nowISO,
+            awaitingLR: bs >= 6,
+            veHistory: [{ time: nowISO, bs, finding: `Admitted to ${ward} — ${veText}` }],
+          };
+        }
+        showToast(`${commonData.name} admitted to ${ward}`);
+        switchTab('ongoing');
+      } else if (mode === 'edit') {
+        const idx = cases.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          cases[idx] = {
+            ...cases[idx],
+            ...commonData,
+            awaitingLR: bs >= 6 ? true : cases[idx].awaitingLR,
+          };
+        }
+        showToast('Patient details updated');
+      }
+
+      saveState();
+      closeModal('modalOngoingForm');
+      renderAll();
+    }
+
+    // ==================== UPDATE VE & BISHOP SCORE MODAL ====================
+    function openUpdateVEModal(caseId) {
+      const c = cases.find(x => x.id === caseId);
+      if (!c) return;
+      document.getElementById('veCaseId').value = c.id;
+      document.getElementById('veModalSubtitle').innerHTML = `
+        <span>${escapeHTML(c.name)} (<span class="font-mono">${escapeHTML(sanitizeIC(c.ic))}</span>) • ${escapeHTML(c.parity)} • GA ${escapeHTML(c.ga)}</span>
+        ${formatBMIBadge(c.bmi)}
+      `;
+      document.getElementById('veWard').value = c.ward || 'Ward 7A';
+      document.getElementById('veMethod').value = c.method || '';
+      document.getElementById('veExtraNotes').value = '';
+
+      const bp = c.bishopParts || { d: 1, e: 1, s: 0, c: 1, p: 0 };
+      document.getElementById('bsDilation').value = bp.d;
+      document.getElementById('bsEffacement').value = bp.e;
+      document.getElementById('bsStation').value = bp.s;
+      document.getElementById('bsConsistency').value = bp.c;
+      document.getElementById('bsPosition').value = bp.p;
+
+      recalcBishop(false);
+      document.getElementById('veAwaitingLR').checked = isCaseFavorable(c);
+
+      const histEl = document.getElementById('veHistoryContainer');
+      const hist = c.veHistory || [];
+      if (hist.length === 0) {
+        histEl.innerHTML = '<p class="text-purple-400 italic">No previous VE entries logged.</p>';
+      } else {
+        histEl.innerHTML = [...hist].reverse().map(h => `
+          <div class="p-2 rounded-lg bg-purple-50/50 border border-purple-200/70 flex items-start justify-between gap-2">
+            <div>
+              <span class="font-bold text-purple-900">BS ${h.bs}/13:</span>
+              <span class="text-purple-950/90">${escapeHTML(h.finding)}</span>
+            </div>
+            <span class="text-[10px] font-semibold text-purple-500 shrink-0">${formatShortDateTime(h.time)}</span>
+          </div>
+        `).join('');
+      }
+
+      openModal('modalUpdateVE');
+    }
+
+    function recalcBishop(autoToggleLR = true) {
+      const dEl = document.getElementById('bsDilation');
+      const eEl = document.getElementById('bsEffacement');
+      const sEl = document.getElementById('bsStation');
+      const cEl = document.getElementById('bsConsistency');
+      const pEl = document.getElementById('bsPosition');
+
+      const d = parseInt(dEl.value, 10) || 0;
+      const e = parseInt(eEl.value, 10) || 0;
+      const s = parseInt(sEl.value, 10) || 0;
+      const c = parseInt(cEl.value, 10) || 0;
+      const p = parseInt(pEl.value, 10) || 0;
+      const total = d + e + s + c + p;
+
+      const badge = document.getElementById('bsTotalBadge');
+      const isFav = total >= 6;
+      badge.textContent = `BS: ${total} / 13 (${isFav ? 'Favorable' : 'Unfavorable'})`;
+      badge.className = `text-sm font-extrabold px-3.5 py-1.5 rounded-xl text-white shadow-xs ${isFav ? 'bg-fuchsia-600' : 'bg-amber-600'}`;
+
+      if (autoToggleLR) {
+        document.getElementById('veAwaitingLR').checked = isFav;
+      }
+
+      const extra = document.getElementById('veExtraNotes').value.trim();
+      const summary = [
+        dEl.options[dEl.selectedIndex].dataset.txt,
+        eEl.options[eEl.selectedIndex].dataset.txt,
+        sEl.options[sEl.selectedIndex].dataset.txt,
+        cEl.options[cEl.selectedIndex].dataset.txt,
+        pEl.options[pEl.selectedIndex].dataset.txt,
+      ].join(', ') + (extra ? `, ${extra}` : '');
+
+      document.getElementById('veFormattedPreview').textContent = `Formatted VE: ${summary}`;
+      return { total, parts: { d, e, s, c, p }, summary };
+    }
+
+    document.getElementById('veExtraNotes').addEventListener('input', () => recalcBishop(false));
+
+    function saveUpdateVE(e) {
+      e.preventDefault();
+      const id = document.getElementById('veCaseId').value;
+      const idx = cases.findIndex(c => c.id === id);
+      if (idx === -1) return;
+
+      const { total, parts, summary } = recalcBishop(false);
+      const nowISO = new Date().toISOString();
+      const awaitingLR = document.getElementById('veAwaitingLR').checked;
+      const history = Array.isArray(cases[idx].veHistory) ? [...cases[idx].veHistory] : [];
+      history.push({ time: nowISO, bs: total, finding: summary });
+
+      cases[idx] = {
+        ...cases[idx],
+        ward: document.getElementById('veWard').value,
+        method: document.getElementById('veMethod').value.trim(),
+        bishopScore: total,
+        bishopParts: parts,
+        latestVE: summary,
+        latestVETime: nowISO,
+        awaitingLR,
+        veHistory: history,
+      };
+
+      saveState();
+      closeModal('modalUpdateVE');
+      renderAll();
+      showToast(awaitingLR ? 'VE updated — Highlighted for Labour Room!' : 'VE & Bishop Score updated');
+    }
+
+    // ==================== COMPLETE / OUTCOME MODAL ====================
+    function openOutcomeModal(caseId) {
+      const c = cases.find(x => x.id === caseId);
+      if (!c) return;
+      document.getElementById('outcomeCaseId').value = c.id;
+      document.getElementById('outcomePatientHeader').innerHTML = `
+        <span>${escapeHTML(c.name)} (${escapeHTML(c.ward)}) • ${escapeHTML(c.parity)} • GA ${escapeHTML(c.ga)}</span>
+        ${formatBMIBadge(c.bmi)}
+      `;
+      document.getElementById('outcomeType').value = 'SVD';
+      document.getElementById('outcomeTime').value = toDateTimeLocalVal(new Date());
+      document.getElementById('outcomeRemarks').value = '';
+      openModal('modalOutcome');
+    }
+
+    function saveOutcome(e) {
+      e.preventDefault();
+      const id = document.getElementById('outcomeCaseId').value;
+      const idx = cases.findIndex(c => c.id === id);
+      if (idx === -1) return;
+
+      cases[idx] = {
+        ...cases[idx],
+        status: 'completed',
+        outcome: document.getElementById('outcomeType').value,
+        completedAt: new Date(document.getElementById('outcomeTime').value).toISOString(),
+        outcomeRemarks: document.getElementById('outcomeRemarks').value.trim(),
+      };
+
+      saveState();
+      closeModal('modalOutcome');
+      renderAll();
+      showToast(`Case completed (${cases[idx].outcome})`);
+    }
+
+    // ==================== TAB 3: COMPLETED & SHIFT HANDOVER ====================
+    function renderCompleted() {
+      const allCompleted = cases
+        .filter(c => c.status === 'completed')
+        .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+
+      const total = allCompleted.length;
+      const counts = { SVD: 0, Instrumental: 0, EMLSCS: 0, 'Failed IOL': 0 };
+      allCompleted.forEach(c => {
+        if (counts[c.outcome] !== undefined) counts[c.outcome]++;
+      });
+
+      const pct = n => (total ? `${Math.round((n / total) * 100)}%` : '0%');
+      document.getElementById('statSVD').textContent = counts.SVD;
+      document.getElementById('statSVDPct').textContent = pct(counts.SVD);
+      document.getElementById('statInst').textContent = counts.Instrumental;
+      document.getElementById('statInstPct').textContent = pct(counts.Instrumental);
+      document.getElementById('statEMLSCS').textContent = counts.EMLSCS;
+      document.getElementById('statEMLSCSPct').textContent = pct(counts.EMLSCS);
+      document.getElementById('statFailed').textContent = counts['Failed IOL'];
+      document.getElementById('statFailedPct').textContent = pct(counts['Failed IOL']);
+
+      const q = (document.getElementById('completedSearch')?.value || '').toLowerCase().trim();
+      const qDigits = q.replace(/\D/g, '');
+      const completed = q
+        ? allCompleted.filter(c =>
+            (c.name || '').toLowerCase().includes(q) ||
+            sanitizeIC(c.ic).includes(qDigits || q) ||
+            (c.indication || '').toLowerCase().includes(q) ||
+            (c.outcome || '').toLowerCase().includes(q) ||
+            (c.ward || '').toLowerCase().includes(q)
+          )
+        : allCompleted;
+
+      document.getElementById('completedTotalLabel').textContent = `${completed.length} of ${total} record${total === 1 ? '' : 's'}`;
+      document.getElementById('handoverPreviewTab').textContent = buildHandoverText();
+
+      const tbody = document.getElementById('completedTableBody');
+      const empty = document.getElementById('completedEmpty');
+
+      if (completed.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      const outcomeStyles = {
+        SVD: 'bg-emerald-100 text-emerald-800',
+        Instrumental: 'bg-sky-100 text-sky-800',
+        EMLSCS: 'bg-amber-100 text-amber-800',
+        'Failed IOL': 'bg-rose-100 text-rose-800',
+      };
+
+      tbody.innerHTML = completed.map(c => `
+        <tr class="hover:bg-purple-50/40">
+          <td class="py-3 px-4">
+            <div class="font-bold text-purple-950">${escapeHTML(c.name)}</div>
+            <div class="text-xs text-purple-700/80"><span class="font-mono">${escapeHTML(sanitizeIC(c.ic))}</span> • ${c.age}y • ${escapeHTML(c.parity)} • ${escapeHTML(c.ga)}</div>
+          </td>
+          <td class="py-3 px-4">
+            ${formatBMIBadge(c.bmi, true)}
+          </td>
+          <td class="py-3 px-4">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-md ${c.ward === 'Ward 7B' ? 'bg-pink-100 text-pink-800' : 'bg-violet-100 text-violet-800'}">${escapeHTML(c.ward || '—')}</span>
+          </td>
+          <td class="py-3 px-4 text-xs font-semibold text-purple-900">${escapeHTML(c.indication)}</td>
+          <td class="py-3 px-4 text-xs text-purple-800/85">${escapeHTML(c.method || '—')}</td>
+          <td class="py-3 px-4">
+            <span class="text-xs font-extrabold px-2.5 py-1 rounded-full ${outcomeStyles[c.outcome] || 'bg-purple-100 text-purple-800'}">${escapeHTML(c.outcome)}</span>
+          </td>
+          <td class="py-3 px-4 text-xs text-purple-800/85 whitespace-nowrap">${formatShortDateTime(c.completedAt)}</td>
+          <td class="py-3 px-4 text-xs text-purple-800/85 max-w-xs">${escapeHTML(c.outcomeRemarks || '—')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function buildHandoverText() {
+      const now = new Date();
+      const tmrStr = offsetDaysStr(1);
+      const ongoing = cases.filter(c => c.status === 'ongoing');
+      const awaitingLR = ongoing.filter(isCaseFavorable);
+      const w7A = ongoing.filter(c => c.ward === 'Ward 7A');
+      const w7B = ongoing.filter(c => c.ward === 'Ward 7B');
+      const tmrBooked = cases.filter(c => c.status === 'booked' && c.plannedDate === tmrStr);
+
+      let txt = `*HTPN KAJANG O&G — IOL SHIFT HANDOVER*\n`;
+      txt += `Date/Time: ${now.toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })}\n`;
+      txt += `====================================\n\n`;
+
+      txt += `⭐ *AWAITING CALL LABOUR ROOM (${awaitingLR.length})*\n`;
+      if (awaitingLR.length === 0) {
+        txt += `- None\n`;
+      } else {
+        awaitingLR.forEach((c, i) => {
+          txt += `${i + 1}. [${c.ward}] ${c.name} (${sanitizeIC(c.ic)}) | ${c.age}y ${c.parity} GA ${c.ga} | ${formatBMIText(c.bmi)}\n`;
+          txt += `   Ind: ${c.indication} | Method: ${c.method}\n`;
+          txt += `   BS ${c.bishopScore}/13 — ${c.latestVE}\n`;
+        });
+      }
+
+      txt += `\n🟣 *WARD 7A ONGOING IOLs (${w7A.length})*\n`;
+      if (w7A.length === 0) {
+        txt += `- None\n`;
+      } else {
+        w7A.forEach((c, i) => {
+          const favTag = isCaseFavorable(c) ? ' [FAVORABLE - AWAITING LR]' : '';
+          txt += `${i + 1}. ${c.name} (${sanitizeIC(c.ic)}) | ${c.age}y ${c.parity} GA ${c.ga} | ${formatBMIText(c.bmi)}${favTag}\n`;
+          txt += `   Ind: ${c.indication} | Method: ${c.method}\n`;
+          txt += `   VE (BS ${c.bishopScore}/13): ${c.latestVE}\n`;
+        });
+      }
+
+      txt += `\n🩷 *WARD 7B ONGOING IOLs (${w7B.length})*\n`;
+      if (w7B.length === 0) {
+        txt += `- None\n`;
+      } else {
+        w7B.forEach((c, i) => {
+          const favTag = isCaseFavorable(c) ? ' [FAVORABLE - AWAITING LR]' : '';
+          txt += `${i + 1}. ${c.name} (${sanitizeIC(c.ic)}) | ${c.age}y ${c.parity} GA ${c.ga} | ${formatBMIText(c.bmi)}${favTag}\n`;
+          txt += `   Ind: ${c.indication} | Method: ${c.method}\n`;
+          txt += `   VE (BS ${c.bishopScore}/13): ${c.latestVE}\n`;
+        });
+      }
+
+      const tmrWeekend = isWeekendDateStr(tmrStr);
+      txt += `\n📅 *TOMORROW'S BOOKED IOLs (${tmrStr}): ${tmrBooked.length}${tmrWeekend ? ' [Weekend Special]' : `/${WEEKDAY_LIMIT} slots`}*\n`;
+      if (tmrBooked.length === 0) {
+        txt += `- None booked\n`;
+      } else {
+        tmrBooked.forEach((c, i) => {
+          txt += `${i + 1}. ${c.name} (${sanitizeIC(c.ic)}) | ${c.age}y ${c.parity} GA ${c.ga} | ${formatBMIText(c.bmi)} | ${c.indication}\n`;
+          txt += `   Booked by: ${c.bookedBy} | Specialist: ${c.specialist}${c.isSpecialWeekend ? ' [SPECIAL CASE]' : ''}\n`;
+        });
+      }
+
+      return txt;
+    }
+
+    function openHandoverModal() {
+      document.getElementById('handoverModalPreview').textContent = buildHandoverText();
+      openModal('modalHandover');
+    }
+
+    function copyShiftHandover() {
+      const text = buildHandoverText();
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Shift handover copied to clipboard!');
+      } catch (err) {
+        showToast('Copy failed — please select and copy manually.');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function exportCSV() {
+      const headers = [
+        'ID', 'Status', 'Ward', 'Patient_Name', 'IC_Number', 'Age', 'BMI_kg_m2', 'Parity', 'Gestational_Age',
+        'Indication', 'Planned_Date', 'Weekend_Special', 'Special_Reason', 'Booked_By', 'Specialist',
+        'IOL_Method', 'Start_Time', 'Bishop_Score', 'Awaiting_LR', 'Latest_VE', 'Outcome', 'Completed_At', 'Outcome_Remarks'
+      ];
+      const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+      const rows = cases.map(c => [
+        c.id, c.status, c.ward || '', c.name, sanitizeIC(c.ic), c.age, c.bmi ?? '', c.parity, c.ga,
+        c.indication, c.plannedDate || '', c.isSpecialWeekend ? 'Yes' : 'No', c.specialReason || '',
+        c.bookedBy || '', c.specialist || '', c.method || '', c.startTime || '',
+        c.bishopScore ?? '', isCaseFavorable(c) ? 'Yes' : 'No', c.latestVE || '',
+        c.outcome || '', c.completedAt || '', c.outcomeRemarks || ''
+      ].map(esc).join(','));
+
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `HTPN_Kajang_IOL_${toLocalDateStr(new Date())}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('CSV exported successfully');
+    }
+
+    // ==================== DELETE, RESET & CLEAR ACTIONS ====================
+    function requestDeleteCase(id) {
+      const c = cases.find(x => x.id === id);
+      if (!c) return;
+      openConfirm(
+        c.status === 'booked' ? 'Cancel IOL Booking' : 'Delete Ongoing Case',
+        `Are you sure you want to remove ${c.name} (${sanitizeIC(c.ic)})?`,
+        () => {
+          cases = cases.filter(x => x.id !== id);
+          saveState();
+          renderAll();
+          showToast('Case removed');
+        }
+      );
+    }
+
+    function requestLoadDemo() {
+      openConfirm(
+        'Load Demo Data',
+        'This will replace current records with realistic HTPN Kajang O&G sample cases across all BMI tiers (<30, 30–40, >40). Continue?',
+        () => {
+          cases = getDemoCases();
+          saveState();
+          renderAll();
+          showToast('Demo data loaded');
+        }
+      );
+    }
+
+    function requestClearAll() {
+      openConfirm(
+        'Clear All Data',
+        'This will permanently clear all booked, ongoing, and completed IOL records (and sync if Auto-Sync is ON). Continue?',
+        () => {
+          cases = [];
+          saveState();
+          renderAll();
+          showToast('All data cleared');
+        }
+      );
+    }
+
+    // ==================== NAVIGATION, MODALS & TOAST ====================
+    function switchTab(tab) {
+      activeTab = tab;
+      const map = {
+        ongoing: { sec: 'tabOngoing', btn: 'tabBtnOngoing' },
+        calendar: { sec: 'tabCalendar', btn: 'tabBtnCalendar' },
+        completed: { sec: 'tabCompleted', btn: 'tabBtnCompleted' },
+      };
+
+      Object.keys(map).forEach(k => {
+        const sec = document.getElementById(map[k].sec);
+        const btn = document.getElementById(map[k].btn);
+        if (k === tab) {
+          sec.classList.remove('hidden');
+          btn.className = 'flex-1 min-w-[150px] py-2.5 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 bg-white text-purple-900 shadow-sm';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'flex-1 min-w-[150px] py-2.5 px-4 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 text-purple-800/80 hover:text-purple-950';
+        }
+      });
+
+      if (tab === 'completed') {
+        document.getElementById('handoverPreviewTab').textContent = buildHandoverText();
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openConfirm(title, message, onConfirm) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+      pendingConfirmCallback = onConfirm;
+      document.getElementById('confirmOkBtn').onclick = () => {
+        closeModal('modalConfirm');
+        if (pendingConfirmCallback) pendingConfirmCallback();
+      };
+      openModal('modalConfirm');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    // ==================== INITIALIZE ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSheetsConfig();
+      loadState();
+      updateHeaderClock();
+      setInterval(updateHeaderClock, 30000);
+      renderAll();
+
+      // Auto-pull fresh data on load if Google Sheets URL is configured
+      if (sheetsUrl) {
+        pullFromGoogleSheets(false);
+      }
+    });
+  </script>
+</body>
+</html>
